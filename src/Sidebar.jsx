@@ -63,7 +63,8 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           {/* Portfolio Icon */}
           <button
             title="Portfolio"
-            className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition"
+            onClick={() => setActiveTab('portfolio')}
+            className={`p-2 rounded-xl transition ${activeTab === 'portfolio' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
           >
             <FiPieChart size={18} />
           </button>
@@ -71,7 +72,8 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           {/* Funds Icon */}
           <button
             title="Funds"
-            className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition"
+            onClick={() => setActiveTab('funds')}
+            className={`p-2 rounded-xl transition ${activeTab === 'funds' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
           >
             <FiDollarSign size={18} />
           </button>
