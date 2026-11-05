@@ -1,157 +1,95 @@
 import React, { useState } from 'react';
-import { FiX } from 'react-icons/fi';
+import Sidebar from './Sidebar';
+import HeaderBar from './components/HeaderBar';
+import WatchlistPanel from './components/WatchlistPanel';
+import PositionsDock from './components/PositionsDock';
+import OrderModal from './components/OrderModal';
+import { FiBarChart2 } from 'react-icons/fi';
 
-export default function OrderModal({ isOpen, onClose, stockSymbol = 'RELIANCE', initialType = 'BUY' }) {
-  const [orderType, setOrderType] = useState(initialType); // BUY or SELL
-  const [productType, setProductType] = useState('INTRADAY'); // INTRADAY or DELIVERY
-  const [quantity, setQuantity] = useState(1);
-  const [priceType, setPriceType] = useState('MARKET'); // MARKET or LIMIT
-  const [limitPrice, setLimitPrice] = useState(2971.74);
+export default function App() {
+  const [selectedStock, setSelectedStock] = useState('RELIANCE');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('BUY');
 
-  if (!isOpen) return null;
+  // १. ही positions लिस्टची स्टेट येथे ॲड करा
+  const [positionsList, setPositionsList] = useState([
+    { symbol: 'RELIANCE', qty: 15, avgPrice: 2955.00, ltp: 2971.74, pnl: 251.10, chg: '+0.53%', isBuy: true }
+  ]);
 
-  const isBuy = orderType === 'BUY';
-  const price = 2971.74;
-  const totalAmount = (quantity * (priceType === 'LIMIT' ? limitPrice : price)).toFixed(2);
+  // २. नवीन ऑर्डर ॲड करणारे फंक्शन येथे ठेवा
+  const handleAddPosition = (newOrder) => {
+    setPositionsList(prev => [
+      ...prev,
+      {
+        symbol: newOrder.symbol,
+        qty: newOrder.qty,
+        avgPrice: newOrder.price,
+        ltp: newOrder.price,
+        pnl: 0.00,
+        chg: '0.00%',
+        isBuy: newOrder.type === 'BUY'
+      }
+    ]);
+  };
 
-  const handleSubmitOrder = (e) => {
-    e.preventDefault();
-    alert(`Order Placed Successfully!\nType: ${orderType}\nStock: ${stockSymbol}\nQty: ${quantity}\nTotal: ₹${totalAmount}`);
-    onClose();
+  const openModal = (type) => {
+    setModalType(type);
+    setIsModalOpen(true);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm select-none">
-      <div className="w-full max-w-md bg-[#131B2A] border border-[#1E2638] rounded-xl shadow-2xl overflow-hidden font-sans">
-        
-        {/* Top Header & Toggle Tabs */}
-        <div className={`p-4 flex items-center justify-between border-b border-[#1E2638] ${isBuy ? 'bg-emerald-950/30' : 'bg-red-950/30'}`}>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setOrderType('BUY')}
-              className={`px-4 py-1.5 rounded-md font-semibold text-xs transition-colors ${
-                isBuy ? 'bg-emerald-600 text-white' : 'bg-[#0F141C] text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              BUY
-            </button>
-            <button
-              onClick={() => setOrderType('SELL')}
-              className={`px-4 py-1.5 rounded-md font-semibold text-xs transition-colors ${
-                !isBuy ? 'bg-red-600 text-white' : 'bg-[#0F141C] text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              SELL
-            </button>
-          </div>
-          <div className="text-right flex items-center space-x-3">
-            <div>
-              <div className="font-bold text-sm text-gray-100">{stockSymbol}</div>
-              <div className="text-[10px] font-mono text-gray-400">NSE · ₹{price}</div>
-            </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
-              <FiX size={18} />
-            </button>
-          </div>
-        </div>
+    <div className="flex h-screen bg-[#0F141C] text-gray-200 overflow-hidden font-sans select-none">
+      <Sidebar />
 
-        {/* Modal Form Content */}
-        <form onSubmit={handleSubmitOrder} className="p-4 space-y-4 text-xs">
-          
-          {/* Product Type (Intraday / Delivery) */}
-          <div>
-            <label className="block text-gray-400 mb-1.5 font-medium">Product Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setProductType('INTRADAY')}
-                className={`py-2 rounded border text-center font-medium transition-colors ${
-                  productType === 'INTRADAY'
-                    ? 'border-purple-500 bg-purple-500/10 text-purple-400'
-                    : 'border-[#1E2638] bg-[#0F141C] text-gray-400'
-                }`}
-              >
-                Intraday <span className="text-[10px] block font-normal text-gray-500">MIS (5x margin)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setProductType('DELIVERY')}
-                className={`py-2 rounded border text-center font-medium transition-colors ${
-                  productType === 'DELIVERY'
-                    ? 'border-purple-500 bg-purple-500/10 text-purple-400'
-                    : 'border-[#1E2638] bg-[#0F141C] text-gray-400'
-                }`}
-              >
-                Delivery <span className="text-[10px] block font-normal text-gray-500">CNC (Long-term)</span>
-              </button>
-            </div>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <HeaderBar />
+
+        <div className="flex flex-1 overflow-hidden">
+          <div className="w-80 border-r border-[#1E2638] bg-[#131B2A]">
+            <WatchlistPanel onSelectStock={setSelectedStock} selectedStock={selectedStock} />
           </div>
 
-          {/* Quantity & Order Type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-gray-400 mb-1 font-medium">Quantity</label>
-              <input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded px-3 py-2 text-gray-100 font-mono focus:outline-none focus:border-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-400 mb-1 font-medium">Order Type</label>
-              <select
-                value={priceType}
-                onChange={(e) => setPriceType(e.target.value)}
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-purple-500"
-              >
-                <option value="MARKET">Market</option>
-                <option value="LIMIT">Limit</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Limit Price Input (Only if LIMIT selected) */}
-          {priceType === 'LIMIT' && (
-            <div>
-              <label className="block text-gray-400 mb-1 font-medium">Limit Price (₹)</label>
-              <input
-                type="number"
-                step="0.05"
-                value={limitPrice}
-                onChange={(e) => setLimitPrice(parseFloat(e.target.value))}
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded px-3 py-2 text-gray-100 font-mono focus:outline-none focus:border-purple-500"
-              />
-            </div>
-          )}
-
-          {/* Margin & Amount Calculation */}
-          <div className="bg-[#0F141C] border border-[#1E2638] p-3 rounded flex items-center justify-between font-mono">
-            <div>
-              <div className="text-gray-400 text-[10px]">Approx Margin Required</div>
-              <div className="text-gray-200 font-semibold text-xs">
-                ₹{productType === 'INTRADAY' ? (totalAmount / 5).toFixed(2) : totalAmount}
+          <div className="flex flex-col flex-1 bg-[#0F141C]">
+            <div className="flex-1 relative flex flex-col items-center justify-center p-4 bg-[#0F141C]">
+              <div className="absolute inset-4 border border-dashed border-[#1E2638]/60 rounded-lg flex flex-col items-center justify-center text-center p-6">
+                <FiBarChart2 className="text-purple-500 mb-2 animate-bounce" size={36} />
+                <h3 className="text-sm font-semibold text-gray-300">Advanced TradingView Chart for {selectedStock}</h3>
+                <p className="text-xs text-gray-500 mt-1 max-w-md">
+                  Displaying live market candles, volume indicators, and moving average trends for <span className="text-purple-400">{selectedStock}</span>.
+                </p>
+                <div className="mt-4 flex items-center space-x-3">
+                  <button
+                    onClick={() => openModal('BUY')}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-xs font-semibold shadow"
+                  >
+                    BUY {selectedStock}
+                  </button>
+                  <button
+                    onClick={() => openModal('SELL')}
+                    className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded text-xs font-semibold shadow"
+                  >
+                    SELL {selectedStock}
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-gray-400 text-[10px]">Available Funds</div>
-              <div className="text-emerald-400 font-semibold text-xs">₹50,000.00</div>
+
+            {/* ۳. PositionsDock ला positionsList डेटा प्रॉप म्हणून पास करा */}
+            <div className="h-44 border-t border-[#1E2638] bg-[#131B2A]">
+              <PositionsDock positions={positionsList} />
             </div>
           </div>
-
-          {/* Submit Action Button */}
-          <button
-            type="submit"
-            className={`w-full py-2.5 rounded-lg font-bold text-white text-sm transition-transform active:scale-[0.98] ${
-              isBuy ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'
-            }`}
-          >
-            {isBuy ? 'PLACE BUY ORDER' : 'PLACE SELL ORDER'}
-          </button>
-        </form>
+        </div>
       </div>
+
+      {/* ४. OrderModal मध्ये handleAddPosition पास करा जेणेकरून ऑर्डर सबमिट झाल्यावर इथे येईल */}
+      <OrderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        stockSymbol={selectedStock}
+        initialType={modalType}
+        onAddPosition={handleAddPosition}
+      />
     </div>
   );
 }
