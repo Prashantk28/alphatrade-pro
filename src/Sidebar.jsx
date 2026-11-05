@@ -48,10 +48,10 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             onClick={() => setActiveTab('futures')}
             className={`p-2 rounded-xl transition ${activeTab === 'futures' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
           >
-            <FiBarChart2 size={18} />
+            <BarChart2 size={18} />
           </button>
 
-          {/* Commodities Icon (नवीन जोडलेला) */}
+          {/* Commodities Icon (हा बॉक्स आयकॉन इथे जोडणे बाकी आहे) */}
           <button
             title="Commodities & MCX"
             onClick={() => setActiveTab('commodities')}
