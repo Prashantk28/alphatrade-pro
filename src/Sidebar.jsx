@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiTrendingUp, FiCompass, FiPieChart, FiDollarSign, FiSettings, FiGrid } from 'react-icons/fi';
+import { FiTrendingUp, FiCompass, FiLayers, FiPieChart, FiDollarSign, FiSettings } from 'react-icons/fi';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   return (
@@ -24,7 +24,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             <FiTrendingUp size={18} />
           </button>
 
-          {/* Discover / Ideas Icon */}
+          {/* Discover / Markets Icon */}
           <button
             title="Discover & Ideas"
             onClick={() => setActiveTab('explore')}
@@ -34,13 +34,13 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
           </button>
 
-          {/* Dashboard Icon */}
+          {/* Option Chain Icon (नवीन जोडलेला) */}
           <button
-            title="Markets Overview"
-            onClick={() => setActiveTab('explore')}
-            className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition"
+            title="Option Chain"
+            onClick={() => setActiveTab('optionchain')}
+            className={`p-2 rounded-xl transition ${activeTab === 'optionchain' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
           >
-            <FiGrid size={18} />
+            <FiLayers size={18} />
           </button>
 
           {/* Holdings / Portfolio Icon */}
