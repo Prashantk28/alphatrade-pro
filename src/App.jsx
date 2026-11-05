@@ -114,28 +114,57 @@ export default function App() {
               </div>
             </div>
 
-            {/* Main Chart Area */}
-            <div className="flex-1 relative flex flex-col items-center justify-center p-4 bg-[#0F141C]">
-              <div className="absolute inset-4 border border-dashed border-[#1E2638]/60 rounded-lg flex flex-col items-center justify-center text-center p-6">
-                <FiBarChart2 className="text-purple-500 mb-2 animate-bounce" size={36} />
-                <h3 className="text-sm font-semibold text-gray-300">
-                  Advanced TradingView Chart for {selectedStock} ({selectedTimeframe})
-                </h3>
-                <p className="text-xs text-gray-500 mt-1 max-w-md">
-                  Displaying live market candles, volume indicators, and moving average trends for <span className="text-purple-400">{selectedStock}</span>.
-                </p>
-                <div className="mt-4 flex items-center space-x-3">
+            {/* Main Chart Area with Interactive Candlesticks */}
+            <div className="flex-1 relative flex flex-col bg-[#0F141C] overflow-hidden">
+              <div className="px-4 py-1.5 bg-[#0F141C]/50 border-b border-[#1E2638]/40 flex justify-between items-center text-[11px] text-gray-400">
+                <span>O: 2,950.00 | H: 2,985.50 | L: 2,942.00 | C: 2,971.74</span>
+                <span className="text-purple-400 font-medium">Vol: 14,85,210</span>
+              </div>
+
+              <div className="flex-1 relative flex items-end justify-between px-6 pb-6 pt-10">
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none px-6 py-4 opacity-20">
+                  <div className="border-b border-gray-600 w-full"></div>
+                  <div className="border-b border-gray-600 w-full"></div>
+                  <div className="border-b border-gray-600 w-full"></div>
+                  <div className="border-b border-gray-600 w-full"></div>
+                </div>
+
+                {[
+                  { h: 'h-24', color: 'bg-emerald-500', wick: 'h-36' },
+                  { h: 'h-16', color: 'bg-red-500', wick: 'h-24' },
+                  { h: 'h-32', color: 'bg-emerald-500', wick: 'h-44' },
+                  { h: 'h-20', color: 'bg-emerald-500', wick: 'h-28' },
+                  { h: 'h-28', color: 'bg-red-500', wick: 'h-36' },
+                  { h: 'h-40', color: 'bg-emerald-500', wick: 'h-52' },
+                  { h: 'h-12', color: 'bg-red-500', wick: 'h-20' },
+                  { h: 'h-36', color: 'bg-emerald-500', wick: 'h-48' },
+                  { h: 'h-24', color: 'bg-emerald-500', wick: 'h-32' },
+                  { h: 'h-30', color: 'bg-red-500', wick: 'h-40' },
+                  { h: 'h-44', color: 'bg-emerald-500', wick: 'h-56' },
+                  { h: 'h-22', color: 'bg-emerald-500', wick: 'h-30' },
+                  { h: 'h-38', color: 'bg-red-500', wick: 'h-48' },
+                  { h: 'h-28', color: 'bg-emerald-500', wick: 'h-36' },
+                  { h: 'h-48', color: 'bg-emerald-500', wick: 'h-60' }
+                ].map((candle, idx) => (
+                  <div key={idx} className="relative flex flex-col items-center group cursor-pointer z-10">
+                    <div className={`w-[2px] ${candle.color} ${candle.wick} absolute rounded-full opacity-80`}></div>
+                    <div className={`w-3.5 ${candle.h} ${candle.color} rounded-sm shadow-lg relative z-10 transition-transform transform group-hover:scale-110`}></div>
+                  </div>
+                ))}
+
+                <div className="absolute top-4 right-4 flex items-center space-x-2 bg-[#131B2A]/90 border border-[#1E2638] px-3 py-1.5 rounded-lg shadow-xl backdrop-blur-md z-20">
+                  <span className="text-xs text-gray-300 font-medium">{selectedStock} ({selectedTimeframe})</span>
                   <button
                     onClick={() => openModal('BUY')}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-xs font-semibold shadow"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition"
                   >
-                    BUY {selectedStock}
+                    BUY
                   </button>
                   <button
                     onClick={() => openModal('SELL')}
-                    className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded text-xs font-semibold shadow"
+                    className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition"
                   >
-                    SELL {selectedStock}
+                    SELL
                   </button>
                 </div>
               </div>
