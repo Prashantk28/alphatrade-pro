@@ -8,11 +8,11 @@ import TradingViewChart from './components/TradingViewChart';
 import ExploreDiscover from './components/ExploreDiscover';
 import OptionChainView from './components/OptionChainView';
 import FuturesView from './components/FuturesView';
-import CommoditiesView from './components/CommoditiesView'; // <--- नवीन इम्पोर्ट
+import CommoditiesView from './components/CommoditiesView';
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
-  const [activeTab, setActiveTab] = useState('explore'); // 'explore', 'optionchain', 'futures', 'commodities', किंवा 'chart'
+  const [activeTab, setActiveTab] = useState('explore'); // 'explore', 'optionchain', 'futures', 'commodities', 'chart'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('BUY');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
