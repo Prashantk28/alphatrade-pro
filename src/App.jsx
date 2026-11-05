@@ -9,7 +9,7 @@ import ExploreDiscover from './components/ExploreDiscover';
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
-  const [activeTab, setActiveTab] = useState('chart'); // 'chart' किवा 'explore'
+  const [activeTab, setActiveTab] = useState('explore'); // 'chart' किवा 'explore'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('BUY');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');

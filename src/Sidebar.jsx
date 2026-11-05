@@ -1,29 +1,70 @@
 import React from 'react';
-import { FiTrendingUp, FiList, FiBriefcase, FiDollarSign, FiSettings } from 'react-icons/fi';
+import { FiTrendingUp, FiCompass, FiPieChart, FiDollarSign, FiSettings, FiGrid } from 'react-icons/fi';
 
-export default function Sidebar() {
+export default function Sidebar({ activeTab, setActiveTab }) {
   return (
-    <div className="w-14 bg-[#131B2A] border-r border-[#1E2638] flex flex-col items-center py-4 space-y-6">
-      <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center font-bold text-white">
-        α
+    <div className="w-14 bg-[#0F141C] border-r border-[#1E2638] flex flex-col items-center py-4 justify-between h-full z-20 select-none">
+      {/* Top Logo */}
+      <div className="flex flex-col items-center space-y-6">
+        <div 
+          onClick={() => setActiveTab('chart')} 
+          className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition"
+        >
+          α
+        </div>
+
+        {/* Navigation Icons */}
+        <div className="flex flex-col space-y-4 text-gray-400">
+          {/* Chart Icon */}
+          <button
+            title="Trading Chart"
+            onClick={() => setActiveTab('chart')}
+            className={`p-2 rounded-xl transition ${activeTab === 'chart' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
+          >
+            <FiTrendingUp size={18} />
+          </button>
+
+          {/* Discover / Ideas Icon */}
+          <button
+            title="Discover & Ideas"
+            onClick={() => setActiveTab('explore')}
+            className={`p-2 rounded-xl transition relative ${activeTab === 'explore' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
+          >
+            <FiCompass size={18} />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+          </button>
+
+          {/* Dashboard Icon */}
+          <button
+            title="Markets Overview"
+            onClick={() => setActiveTab('explore')}
+            className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition"
+          >
+            <FiGrid size={18} />
+          </button>
+
+          {/* Holdings / Portfolio Icon */}
+          <button
+            title="Portfolio"
+            className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition"
+          >
+            <FiPieChart size={18} />
+          </button>
+
+          {/* Funds Icon */}
+          <button
+            title="Funds"
+            className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition"
+          >
+            <FiDollarSign size={18} />
+          </button>
+        </div>
       </div>
-      <nav className="flex flex-col space-y-4 text-gray-400">
-        <button className="p-2 hover:bg-[#1E2638] hover:text-purple-400 rounded-md active text-purple-400">
-          <FiTrendingUp size={20} />
-        </button>
-        <button className="p-2 hover:bg-[#1E2638] hover:text-purple-400 rounded-md">
-          <FiList size={20} />
-        </button>
-        <button className="p-2 hover:bg-[#1E2638] hover:text-purple-400 rounded-md">
-          <FiBriefcase size={20} />
-        </button>
-        <button className="p-2 hover:bg-[#1E2638] hover:text-purple-400 rounded-md">
-          <FiDollarSign size={20} />
-        </button>
-      </nav>
-      <div className="mt-auto">
-        <button className="p-2 hover:bg-[#1E2638] text-gray-400 rounded-md">
-          <FiSettings size={20} />
+
+      {/* Bottom Settings Icon */}
+      <div className="text-gray-400">
+        <button title="Settings" className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition">
+          <FiSettings size={18} />
         </button>
       </div>
     </div>
