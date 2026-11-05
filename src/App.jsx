@@ -12,7 +12,7 @@ import CommoditiesView from './components/CommoditiesView';
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
-  const [activeTab, setActiveTab] = useState('explore'); // 'explore', 'optionchain', 'futures', 'commodities', 'chart'
+  const [activeTab, setActiveTab] = useState('explore');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('BUY');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');

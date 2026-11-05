@@ -51,7 +51,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             <FiBarChart2 size={18} />
           </button>
 
-          {/* Commodities Icon (हा बॉक्स आयकॉन इथे जोडला आहे) */}
+          {/* Commodities Icon */}
           <button
             title="Commodities & MCX"
             onClick={() => setActiveTab('commodities')}
