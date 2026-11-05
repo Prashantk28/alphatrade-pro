@@ -6,10 +6,11 @@ import PositionsDock from './components/PositionsDock';
 import OrderModal from './components/OrderModal';
 import TradingViewChart from './components/TradingViewChart';
 import ExploreDiscover from './components/ExploreDiscover';
+import OptionChainView from './components/OptionChainView'; // <--- १. इथे इम्पोर्ट केले
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
-  const [activeTab, setActiveTab] = useState('explore'); // 'chart' किवा 'explore'
+  const [activeTab, setActiveTab] = useState('explore'); // 'explore', 'chart', किवा 'optionchain'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('BUY');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
@@ -53,10 +54,12 @@ export default function App() {
             <WatchlistPanel onSelectStock={setSelectedStock} selectedStock={selectedStock} />
           </div>
 
-          {/* Main Content Area: Tab switching between Chart and Explore */}
+          {/* Main Content Area: Tab switching between Explore, OptionChain, and Chart */}
           <div className="flex flex-col flex-1 bg-[#0F141C] overflow-hidden">
             {activeTab === 'explore' ? (
               <ExploreDiscover onOpenModal={openModal} />
+            ) : activeTab === 'optionchain' ? (
+              <OptionChainView onOpenModal={openModal} />
             ) : (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
