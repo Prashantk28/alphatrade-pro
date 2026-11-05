@@ -5,9 +5,11 @@ import WatchlistPanel from './components/WatchlistPanel';
 import PositionsDock from './components/PositionsDock';
 import OrderModal from './components/OrderModal';
 import TradingViewChart from './components/TradingViewChart';
+import ExploreDiscover from './components/ExploreDiscover';
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
+  const [activeTab, setActiveTab] = useState('chart'); // 'chart' किवा 'explore'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('BUY');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
@@ -39,37 +41,43 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-[#0F141C] text-gray-200 overflow-hidden font-sans select-none">
-      <Sidebar />
+      {/* Sidebar with active tab handler */}
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <HeaderBar />
 
         <div className="flex flex-1 overflow-hidden">
+          {/* Watchlist Panel */}
           <div className="w-80 border-r border-[#1E2638] bg-[#131B2A]">
             <WatchlistPanel onSelectStock={setSelectedStock} selectedStock={selectedStock} />
           </div>
 
-          <div className="flex flex-col flex-1 bg-[#0F141C]">
-            {/* Pro Upstox-Style TradingView Chart Component */}
-            <div className="flex-1 flex flex-col relative overflow-hidden">
-              <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
+          {/* Main Content Area: Tab switching between Chart and Explore */}
+          <div className="flex flex-col flex-1 bg-[#0F141C] overflow-hidden">
+            {activeTab === 'explore' ? (
+              <ExploreDiscover onOpenModal={openModal} />
+            ) : (
+              <div className="flex-1 flex flex-col relative overflow-hidden">
+                <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
 
-              {/* Floating Action Overlay for Quick Buy/Sell */}
-              <div className="absolute top-3 right-20 flex items-center space-x-2 z-30">
-                <button
-                  onClick={() => openModal('BUY')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs font-semibold shadow-lg transition"
-                >
-                  BUY {selectedStock}
-                </button>
-                <button
-                  onClick={() => openModal('SELL')}
-                  className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-semibold shadow-lg transition"
-                >
-                  SELL {selectedStock}
-                </button>
+                {/* Quick Buy/Sell Floating Buttons */}
+                <div className="absolute top-3 right-20 flex items-center space-x-2 z-30">
+                  <button
+                    onClick={() => openModal('BUY')}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs font-semibold shadow-lg transition"
+                  >
+                    BUY {selectedStock}
+                  </button>
+                  <button
+                    onClick={() => openModal('SELL')}
+                    className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-semibold shadow-lg transition"
+                  >
+                    SELL {selectedStock}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Positions Dock */}
             <div className="h-48 border-t border-[#1E2638] bg-[#131B2A]">
@@ -79,6 +87,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* Order Modal */}
       <OrderModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
