@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiTrendingUp, FiCompass, FiLayers, FiBarChart2, FiPieChart, FiDollarSign, FiSettings } from 'react-icons/fi';
+import { FiTrendingUp, FiCompass, FiLayers, FiBarChart2, FiBox, FiPieChart, FiDollarSign, FiSettings } from 'react-icons/fi';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   return (
@@ -49,6 +49,15 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             className={`p-2 rounded-xl transition ${activeTab === 'futures' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
           >
             <FiBarChart2 size={18} />
+          </button>
+
+          {/* Commodities Icon (नवीन जोडलेला) */}
+          <button
+            title="Commodities & MCX"
+            onClick={() => setActiveTab('commodities')}
+            className={`p-2 rounded-xl transition ${activeTab === 'commodities' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
+          >
+            <FiBox size={18} />
           </button>
 
           {/* Portfolio Icon */}
