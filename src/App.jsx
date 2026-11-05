@@ -7,11 +7,12 @@ import OrderModal from './components/OrderModal';
 import TradingViewChart from './components/TradingViewChart';
 import ExploreDiscover from './components/ExploreDiscover';
 import OptionChainView from './components/OptionChainView';
-import FuturesView from './components/FuturesView'; // <--- इम्पोर्ट केले
+import FuturesView from './components/FuturesView';
+import CommoditiesView from './components/CommoditiesView'; // <--- नवीन इम्पोर्ट
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
-  const [activeTab, setActiveTab] = useState('explore'); // 'explore', 'optionchain', 'futures', किंवा 'chart'
+  const [activeTab, setActiveTab] = useState('explore'); // 'explore', 'optionchain', 'futures', 'commodities', किंवा 'chart'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('BUY');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
@@ -59,6 +60,8 @@ export default function App() {
               <OptionChainView onOpenModal={openModal} />
             ) : activeTab === 'futures' ? (
               <FuturesView onOpenModal={openModal} />
+            ) : activeTab === 'commodities' ? (
+              <CommoditiesView onOpenModal={openModal} />
             ) : (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
