@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiTrendingUp, FiCheckCircle, FiChevronRight, FiFlame, FiAward, FiPieChart } from 'react-icons/fi';
+import { FiTrendingUp, FiCheckCircle, FiChevronRight, FiActivity, FiAward, FiPieChart } from 'react-icons/fi';
 
 export default function ExploreDiscover({ onOpenModal }) {
   const [activeTab, setActiveTab] = useState('Overview');
@@ -44,7 +44,7 @@ export default function ExploreDiscover({ onOpenModal }) {
       <div className="flex justify-between items-center border-b border-[#1E2638] pb-3">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center space-x-2">
-            <FiFlame className="text-orange-500" />
+            <FiActivity className="text-orange-500" />
             <span>Discover & Markets</span>
           </h1>
           <p className="text-xs text-gray-400">Explore trending ideas, advisory recommendations, and option chains</p>
