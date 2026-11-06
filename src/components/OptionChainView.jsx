@@ -15,17 +15,18 @@ export default function OptionChainView({ onOpenModal }) {
   ];
 
   const optionData = [
-    { volumeCall: '5.62 Cr', ivCall: '17.92', deltaCall: '0.7656', oiCall: '-2,00,78', callOiLakhs: '15.32', callLtp: 307.60, strike: 24400, pcr: '5.61', putLtp: 73.70, putOiLakhs: '78.5', oiPut: '+78,67,925', deltaPut: '-0.2438', ivPut: '18.72', volumePut: '19.03 Cr' },
-    { volumeCall: '5.34 Cr', ivCall: '17.76', deltaCall: '0.7278', oiCall: '-1,34,095', callOiLakhs: '15.78', callLtp: 270.85, strike: 24450, pcr: '5.12', putLtp: 87.15, putOiLakhs: '163.53', oiPut: '+56,41,545', deltaPut: '-0.2789', ivPut: '18.38', volumePut: '11.57 Cr' },
-    { volumeCall: '18.39 Cr', ivCall: '17.50', deltaCall: '0.6874', oiCall: '+1,66,725', callOiLakhs: '59.67', callLtp: 236.10, strike: 24500, pcr: '2.74', putLtp: 102.60, putOiLakhs: '82.46', oiPut: '+1,05,33,315', deltaPut: '-0.3189', ivPut: '18.18', volumePut: '24.10 Cr' },
-    { volumeCall: '14.26 Cr', ivCall: '17.27', deltaCall: '0.6432', oiCall: '-13,41,080', callOiLakhs: '29.53', callLtp: 204.35, strike: 24550, pcr: '2.79', putLtp: 120.65, putOiLakhs: '129.99', oiPut: '+52,46,865', deltaPut: '-0.3612', ivPut: '17.88', volumePut: '12.16 Cr' },
-    { volumeCall: '28.28 Cr', ivCall: '17.10', deltaCall: '0.5956', oiCall: '+23,86,345', callOiLakhs: '86.47', callLtp: 175.20, strike: 24600, pcr: '1.50', putLtp: 141.45, putOiLakhs: '76.69', oiPut: '+1,10,26,665', deltaPut: '-0.4075', ivPut: '17.71', volumePut: '20.32 Cr' },
-    { volumeCall: '22.31 Cr', ivCall: '17.04', deltaCall: '0.5453', oiCall: '+57,55,230', callOiLakhs: '83.35', callLtp: 148.35, strike: 24650, pcr: '0.92', putLtp: 164.90, putOiLakhs: '51.97', oiPut: '+71,32,515', deltaPut: '-0.4559', ivPut: '17.57', volumePut: '9.77 Cr' },
-    { volumeCall: '25.98 Cr', ivCall: '16.93', deltaCall: '0.4940', oiCall: '+64,22,130', callOiLakhs: '126.35', callLtp: 125.00, strike: 24700, pcr: '0.41', putLtp: 191.15, putOiLakhs: '11.28', oiPut: '+45,73,075', deltaPut: '-0.5056', ivPut: '17.51', volumePut: '7.61 Cr' },
-    { volumeCall: '12.71 Cr', ivCall: '16.87', deltaCall: '0.4425', oiCall: '+31,20,390', callOiLakhs: '55.6', callLtp: 104.90, strike: 24750, pcr: '0.20', putLtp: 220.75, putOiLakhs: '17.28', oiPut: '+7,99,890', deltaPut: '-0.5555', ivPut: '17.42', volumePut: '1.57 Cr' },
-    { volumeCall: '19.47 Cr', ivCall: '16.87', deltaCall: '0.3920', oiCall: '+27,12,970', callOiLakhs: '104.48', callLtp: 86.40, strike: 24800, pcr: '0.17', putLtp: 252.80, putOiLakhs: '2.79', oiPut: '+14,20,445', deltaPut: '-0.6046', ivPut: '17.41', volumePut: '1.79 Cr' },
-    { volumeCall: '8.66 Cr', ivCall: '16.81', deltaCall: '0.3428', oiCall: '+29,52,300', callOiLakhs: '51.82', callLtp: 71.25, strike: 24850, pcr: '0.05', putLtp: 288.35, putOiLakhs: '3.63', oiPut: '+2,05,530', deltaPut: '-0.6515', ivPut: '17.45', volumePut: '38.49 L' },
-    { volumeCall: '10.96 Cr', ivCall: '16.87', deltaCall: '0.2973', oiCall: '+22,70,905', callOiLakhs: '59.93', callLtp: 58.25, strike: 24900, pcr: '0.06', putLtp: 322.50, putOiLakhs: '0.88', oiPut: '+2,65,200', deltaPut: '-0.6958', ivPut: '17.50', volumePut: '35.58 L' },
+    { volumeCall: '15.55 Cr', ivCall: '19.63', deltaCall: '0.7282', oiCall: '-26,50,2', callOiLakhs: '34.48', callLtp: 322.00, strike: 24550, pcr: '3.48', putLtp: 54.41, putOiLakhs: '27.22', oiPut: '+27,22,135', deltaPut: '-0.2601', ivPut: '18.52', volumePut: '16.00 Cr' },
+    { volumeCall: '32.91 Cr', ivCall: '19.11', deltaCall: '0.6939', oiCall: '-21,95,375', callOiLakhs: '40.65', callLtp: 302.00, strike: 24600, pcr: '2.82', putLtp: 78.30, putOiLakhs: '114.75', oiPut: '+95,02,870', deltaPut: '-0.2972', ivPut: '18.18', volumePut: '27.31 Cr' },
+    { volumeCall: '28.07 Cr', ivCall: '18.99', deltaCall: '0.6530', oiCall: '+3,82,590', callOiLakhs: '29.62', callLtp: 265.80, strike: 24650, pcr: '2.96', putLtp: 92.10, putOiLakhs: '87.8', oiPut: '+82,43,300', deltaPut: '-0.3386', ivPut: '17.89', volumePut: '14.96 Cr' },
+    { volumeCall: '37.93 Cr', ivCall: '18.72', deltaCall: '0.6104', oiCall: '-3,61,595', callOiLakhs: '58.51', callLtp: 233.45, strike: 24700, pcr: '1.48', putLtp: 109.65, putOiLakhs: '86.78', oiPut: '+80,53,825', deltaPut: '-0.3841', ivPut: '17.76', volumePut: '15.46 Cr' },
+    { volumeCall: '21.36 Cr', ivCall: '18.56', deltaCall: '0.5650', oiCall: '+11,19,105', callOiLakhs: '36.35', callLtp: 202.70, strike: 24750, pcr: '1.56', putLtp: 128.35, putOiLakhs: '56.74', oiPut: '+53,45,600', deltaPut: '-0.4318', ivPut: '17.59', volumePut: '5.66 Cr' },
+    { volumeCall: '32.97 Cr', ivCall: '18.43', deltaCall: '0.5179', oiCall: '+32,17,175', callOiLakhs: '109.53', callLtp: 175.00, strike: 24800, pcr: '0.80', putLtp: 150.70, putOiLakhs: '88.13', oiPut: '+85,05,315', deltaPut: '-0.4815', ivPut: '17.47', volumePut: '7.07 Cr' },
+    { volumeCall: '16.41 Cr', ivCall: '18.35', deltaCall: '0.4701', oiCall: '+44,97,935', callOiLakhs: '67.28', callLtp: 149.50, strike: 24850, pcr: '0.33', putLtp: 175.30, putOiLakhs: '22.09', oiPut: '+21,35,640', deltaPut: '-0.5319', ivPut: '17.39', volumePut: '1.87 Cr' },
+    { volumeCall: '18.99 Cr', ivCall: '18.33', deltaCall: '0.4227', oiCall: '+32,46,100', callOiLakhs: '69.68', callLtp: 127.45, strike: 24900, pcr: '0.25', putLtp: 202.80, putOiLakhs: '17.66', oiPut: '+16,68,290', deltaPut: '-0.5817', ivPut: '17.40', volumePut: '1.40 Cr' },
+    { volumeCall: '10.90 Cr', ivCall: '18.29', deltaCall: '0.3763', oiCall: '+26,48,295', callOiLakhs: '41.16', callLtp: 107.50, strike: 24950, pcr: '0.07', putLtp: 234.45, putOiLakhs: '2.86', oiPut: '+2,50,510', deltaPut: '-0.6305', ivPut: '17.35', volumePut: '28.06 L' },
+    { volumeCall: '32.46 Cr', ivCall: '18.41', deltaCall: '0.3329', oiCall: '+35,75,585', callOiLakhs: '155.35', callLtp: 91.15, strike: 25000, pcr: '0.10', putLtp: 266.80, putOiLakhs: '15.62', oiPut: '+7,86,890', deltaPut: '-0.6766', ivPut: '17.39', volumePut: '1.28 Cr' },
+    { volumeCall: '8.70 Cr', ivCall: '18.49', deltaCall: '0.2917', oiCall: '+17,75,735', callOiLakhs: '33.44', callLtp: 76.05, strike: 25050, pcr: '0.04', putLtp: 303.60, putOiLakhs: '1.46', oiPut: '+1,32,600', deltaPut: '-0.7188', ivPut: '17.53', volumePut: '8.80 L' },
+    { volumeCall: '12.21 Cr', ivCall: '18.58', deltaCall: '0.2537', oiCall: '+19,61,830', callOiLakhs: '58.64', callLtp: 63.35, strike: 25100, pcr: '0.02', putLtp: 339.70, putOiLakhs: '1.46', oiPut: '+1,10,565', deltaPut: '-0.7582', ivPut: '17.63', volumePut: '8.93 L' },
   ];
 
   return (
@@ -39,7 +40,7 @@ export default function OptionChainView({ onOpenModal }) {
             <span>Option Chain for NIFTY</span>
           </span>
           <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-semibold">
-            Spot: 24,682.60
+            Spot: 24,804.90
           </span>
         </div>
 
@@ -88,7 +89,7 @@ export default function OptionChainView({ onOpenModal }) {
           </thead>
           <tbody className="divide-y divide-[#1E2638]">
             {optionData.map((row, idx) => {
-              const isAtm = row.strike === 24650;
+              const isAtm = row.strike === 24700;
               const isHovered = hoveredRow === idx;
 
               return (
