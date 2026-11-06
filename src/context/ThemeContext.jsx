@@ -14,21 +14,23 @@ export function ThemeProvider({ children }) {
 
   const toggleTheme = () => {
     setIsDarkMode(prev => {
-      const newTheme = !prev;
-      localStorage.setItem('alphatrade_theme', newTheme ? 'dark' : 'light');
-      return newTheme;
+      const nextState = !prev;
+      localStorage.setItem('alphatrade_theme', nextState ? 'dark' : 'light');
+      return nextState;
     });
   };
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <div className={isDarkMode ? 'dark bg-[#0F141C] text-white' : 'light bg-gray-50 text-gray-900'}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
-  return useContext(ThemeContext);
+  const context = useContext(ThemeContext);
+  if (!context) {
+    return { isDarkMode: true, toggleTheme: () => {} };
+  }
+  return context;
 }
