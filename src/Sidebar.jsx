@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiTrendingUp, FiCompass, FiLayers, FiBarChart2, FiBox, FiPieChart, FiDollarSign, FiSettings } from 'react-icons/fi';
+import { FiTrendingUp, FiCompass, FiLayers, FiBarChart2, FiBox, FiPieChart, FiDollarSign, FiUser, FiSettings } from 'react-icons/fi';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   return (
@@ -80,8 +80,17 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </div>
       </div>
 
-      {/* Bottom Settings Icon */}
-      <div className="text-gray-400">
+      {/* Bottom Login & Settings Icons */}
+      <div className="flex flex-col space-y-3 text-gray-400">
+        {/* Login / Auth Icon */}
+        <button
+          title="Login / Register"
+          onClick={() => setActiveTab('auth')}
+          className={`p-2 rounded-xl transition ${activeTab === 'auth' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
+        >
+          <FiUser size={18} />
+        </button>
+
         <button title="Settings" className="p-2 rounded-xl hover:text-white hover:bg-[#131B2A] transition">
           <FiSettings size={18} />
         </button>
