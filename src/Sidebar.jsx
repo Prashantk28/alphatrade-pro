@@ -80,13 +80,13 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </div>
       </div>
 
-      {/* Bottom Login & Settings Icons */}
+      {/* Bottom Profile & Settings Icons */}
       <div className="flex flex-col space-y-3 text-gray-400">
-        {/* Login / Auth Icon */}
+        {/* User Profile Icon */}
         <button
-          title="Login / Register"
-          onClick={() => setActiveTab('auth')}
-          className={`p-2 rounded-xl transition ${activeTab === 'auth' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
+          title="User Profile"
+          onClick={() => setActiveTab('profile')}
+          className={`p-2 rounded-xl transition ${activeTab === 'profile' ? 'bg-[#1E2638] text-purple-400' : 'hover:text-white hover:bg-[#131B2A]'}`}
         >
           <FiUser size={18} />
         </button>
