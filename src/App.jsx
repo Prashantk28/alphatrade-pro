@@ -45,7 +45,6 @@ export default function App() {
     setIsModalOpen(true);
   };
 
-  // युझर लॉगइन नसेल तर लॉगिन पेज दाखवणे
   if (!isLoggedIn) {
     return (
       <div className="h-screen w-screen bg-[#0F141C] flex items-center justify-center">
@@ -62,7 +61,8 @@ export default function App() {
         <HeaderBar onLogout={() => setIsLoggedIn(false)} />
 
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-80 border-r border-[#1E2638] bg-[#131B2A]">
+          {/* Watchlist Panel container */}
+          <div className="w-80 border-r border-[#1E2638] bg-[#131B2A] flex flex-col h-full">
             <WatchlistPanel onSelectStock={setSelectedStock} selectedStock={selectedStock} />
           </div>
 
@@ -79,10 +79,6 @@ export default function App() {
               <PortfolioView />
             ) : activeTab === 'funds' ? (
               <FundsView />
-            ) : activeTab === 'chart' ? (
-              <div className="flex-1 flex flex-col relative overflow-hidden">
-                <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
-              </div>
             ) : (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
