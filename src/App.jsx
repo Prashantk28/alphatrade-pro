@@ -9,6 +9,7 @@ import ExploreDiscover from './components/ExploreDiscover';
 import OptionChainView from './components/OptionChainView';
 import FuturesView from './components/FuturesView';
 import CommoditiesView from './components/CommoditiesView';
+import AuthView from './components/AuthView';
 
 export default function App() {
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
@@ -62,6 +63,8 @@ export default function App() {
               <FuturesView onOpenModal={openModal} />
             ) : activeTab === 'commodities' ? (
               <CommoditiesView onOpenModal={openModal} />
+            ) : activeTab === 'auth' ? (
+              <AuthView onLoginSuccess={() => setActiveTab('explore')} />
             ) : activeTab === 'chart' ? (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
