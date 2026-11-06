@@ -9,6 +9,8 @@ import ExploreDiscover from './components/ExploreDiscover';
 import OptionChainView from './components/OptionChainView';
 import FuturesView from './components/FuturesView';
 import CommoditiesView from './components/CommoditiesView';
+import PortfolioView from './components/PortfolioView';
+import FundsView from './components/FundsView';
 import AuthView from './components/AuthView';
 
 export default function App() {
@@ -43,7 +45,7 @@ export default function App() {
     setIsModalOpen(true);
   };
 
-  // युझर लॉगइन नसेल तर सुरुवातीला लॉगिन पेज दाखवणे
+  // युझर लॉगइन नसेल तर लॉगिन पेज दाखवणे
   if (!isLoggedIn) {
     return (
       <div className="h-screen w-screen bg-[#0F141C] flex items-center justify-center">
@@ -57,7 +59,6 @@ export default function App() {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* HeaderBar मध्ये onLogout पास केले आहे जेणेकरून ड्रॉपडाउनमधील लॉगआउट काम करेल */}
         <HeaderBar onLogout={() => setIsLoggedIn(false)} />
 
         <div className="flex flex-1 overflow-hidden">
@@ -74,6 +75,10 @@ export default function App() {
               <FuturesView onOpenModal={openModal} />
             ) : activeTab === 'commodities' ? (
               <CommoditiesView onOpenModal={openModal} />
+            ) : activeTab === 'portfolio' ? (
+              <PortfolioView />
+            ) : activeTab === 'funds' ? (
+              <FundsView />
             ) : activeTab === 'chart' ? (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
