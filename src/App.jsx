@@ -10,11 +10,10 @@ import OptionChainView from './components/OptionChainView';
 import FuturesView from './components/FuturesView';
 import CommoditiesView from './components/CommoditiesView';
 import AuthView from './components/AuthView';
+import ProfileView from './components/ProfileView';
 
 export default function App() {
-  // Login status check karnyasathi state (Default: false -> direct login page disel)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
   const [activeTab, setActiveTab] = useState('explore');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +44,7 @@ export default function App() {
     setIsModalOpen(true);
   };
 
-  // Jar user logged in nasel, tar phakta Home / Login page ch disel
+  // युझर लॉगइन नसेल तर सुरुवातीला लॉगिन पेज दाखवणे
   if (!isLoggedIn) {
     return (
       <div className="h-screen w-screen bg-[#0F141C] flex items-center justify-center">
@@ -54,7 +53,6 @@ export default function App() {
     );
   }
 
-  // User logged in zalya-nantar sampurna Trading Dashboard ughadel
   return (
     <div className="flex h-screen bg-[#0F141C] text-gray-200 overflow-hidden font-sans select-none">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -76,6 +74,8 @@ export default function App() {
               <FuturesView onOpenModal={openModal} />
             ) : activeTab === 'commodities' ? (
               <CommoditiesView onOpenModal={openModal} />
+            ) : activeTab === 'profile' ? (
+              <ProfileView onLogout={() => setIsLoggedIn(false)} />
             ) : activeTab === 'chart' ? (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
