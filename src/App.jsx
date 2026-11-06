@@ -61,7 +61,6 @@ export default function App() {
         <HeaderBar onLogout={() => setIsLoggedIn(false)} />
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Watchlist Panel container */}
           <div className="w-80 border-r border-[#1E2638] bg-[#131B2A] flex flex-col h-full">
             <WatchlistPanel onSelectStock={setSelectedStock} selectedStock={selectedStock} />
           </div>
