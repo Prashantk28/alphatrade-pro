@@ -1,132 +1,88 @@
 import React, { useState } from 'react';
+import { FiTrendingUp, FiLock, FiMail, FiArrowRight } from 'react-icons/fi';
+import { useTheme } from '../context/ThemeContext';
 
-export default function AuthView({ onLoginSuccess }) {
-  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot'
+export default function AuthView({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const { isDarkMode } = useTheme();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // लॉगिन किंवा रजिस्ट्रेशन यशस्वी झाल्यावर युझरला थेट मुख्य डॅशबोर्डवर पाठवणे
-    if (onLoginSuccess) {
-      onLoginSuccess();
+    // लॉगिन हँडलर कॉल करून युजरला डॅशबोर्डवर रिडायरेक्ट करतो
+    if (onLogin) {
+      onLogin();
     }
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-[#0F141C] text-gray-200 p-6 select-none h-full">
-      <div className="w-full max-w-md bg-[#131B2A] border border-[#1E2638] rounded-2xl p-8 shadow-2xl">
-        
-        {/* Logo & Header */}
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-3 shadow-lg shadow-purple-600/30">
-            α
+    <div className={`h-screen w-screen flex items-center justify-center p-4 transition-colors ${
+      isDarkMode ? 'bg-[#0F141C] text-white' : 'bg-gray-100 text-gray-900'
+    }`}>
+      <div className={`w-full max-w-md p-8 rounded-2xl border shadow-2xl transition-colors ${
+        isDarkMode ? 'bg-[#131B2A] border-[#1E2638]' : 'bg-white border-gray-200'
+      }`}>
+        {/* Brand Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600/20 rounded-xl text-purple-500 mb-3">
+            <FiTrendingUp size={28} />
           </div>
-          <h1 className="text-xl font-bold text-white">
-            {authMode === 'login' && 'Login to AlphaTrade Pro'}
-            {authMode === 'register' && 'Create Your Account'}
-            {authMode === 'forgot' && 'Reset Password'}
-          </h1>
-          <p className="text-xs text-gray-400 mt-1">
-            {authMode === 'login' && 'Enter your credentials to access your trading dashboard'}
-            {authMode === 'register' && 'Join AlphaTrade Pro for seamless paper trading simulation'}
-            {authMode === 'forgot' && 'Enter your registered email to receive reset instructions'}
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">AlphaTrade Pro</h1>
+          <p className="text-xs text-gray-400 mt-1">Next-Gen Stock & Options Trading Terminal</p>
         </div>
 
-        {/* Form */}
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {authMode === 'register' && (
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">Full Name</label>
+          <div>
+            <label className="block text-xs font-semibold mb-1 text-gray-400">Email Address</label>
+            <div className="relative flex items-center">
+              <FiMail className="absolute left-3 text-gray-400" size={16} />
               <input
-                type="text"
+                type="email"
                 required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Prashant Kamble"
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="trader@alphatrade.com"
+                className={`w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border outline-none transition ${
+                  isDarkMode 
+                    ? 'bg-[#0F141C] border-[#1E2638] text-white focus:border-purple-500' 
+                    : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-purple-600'
+                }`}
               />
             </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">Email Address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
-              className="w-full bg-[#0F141C] border border-[#1E2638] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
-            />
           </div>
 
-          {authMode !== 'forgot' && (
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">Password</label>
+          <div>
+            <label className="block text-xs font-semibold mb-1 text-gray-400">Password</label>
+            <div className="relative flex items-center">
+              <FiLock className="absolute left-3 text-gray-400" size={16} />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
+                className={`w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border outline-none transition ${
+                  isDarkMode 
+                    ? 'bg-[#0F141C] border-[#1E2638] text-white focus:border-purple-500' 
+                    : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-purple-600'
+                }`}
               />
             </div>
-          )}
-
-          {authMode === 'login' && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setAuthMode('forgot')}
-                className="text-xs text-purple-400 hover:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
+          </div>
 
           <button
             type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-purple-600/20"
+            className="w-full mt-2 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-sm transition flex items-center justify-center space-x-2 shadow-lg shadow-purple-600/30 active:scale-[0.98]"
           >
-            {authMode === 'login' && 'Sign In'}
-            {authMode === 'register' && 'Register Account'}
-            {authMode === 'forgot' && 'Send Reset Link'}
+            <span>Enter Terminal</span>
+            <FiArrowRight size={16} />
           </button>
         </form>
 
-        {/* Footer Switches */}
-        <div className="mt-6 text-center text-xs text-gray-400">
-          {authMode === 'login' && (
-            <p>
-              Don't have an account?{' '}
-              <button onClick={() => setAuthMode('register')} className="text-purple-400 font-medium hover:underline">
-                Sign Up
-              </button>
-            </p>
-          )}
-          {authMode === 'register' && (
-            <p>
-              Already have an account?{' '}
-              <button onClick={() => setAuthMode('login')} className="text-purple-400 font-medium hover:underline">
-                Sign In
-              </button>
-            </p>
-          )}
-          {authMode === 'forgot' && (
-            <p>
-              Remembered your password?{' '}
-              <button onClick={() => setAuthMode('login')} className="text-purple-400 font-medium hover:underline">
-                Back to Sign In
-              </button>
-            </p>
-          )}
+        <div className="mt-6 text-center text-xs text-gray-500">
+          Demo Mode: Click <span className="text-purple-400 font-semibold">Enter Terminal</span> to access live market dashboard.
         </div>
-
       </div>
     </div>
   );
