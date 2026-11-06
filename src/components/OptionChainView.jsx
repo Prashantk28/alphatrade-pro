@@ -1,85 +1,125 @@
-import React from 'react';
-import { FiActivity, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { FiLayers, FiBarChart2, FiInfo } from 'react-icons/fi';
 
 export default function OptionChainView({ onOpenModal }) {
-  // 1. Indices Option Chain Snapshot
-  const indices = [
-    { name: 'SENSEX', price: '78,960.32', chg: '+1,658.92 (2.15%)' },
-    { name: 'NIFTY', price: '24,436.75', chg: '+476.15 (1.99%)' },
-    { name: 'BANKNIFTY', price: '57,346.90', chg: '+1,433.30 (2.56%)' },
-    { name: 'MIDCPNIFTY', price: '13,960.60', chg: '+247.95 (1.81%)' },
-    { name: 'FINNIFTY', price: '26,450.90', chg: '+870.30 (3.40%)' },
-    { name: 'NIFTYNXT50', price: '71,823.30', chg: '+1,028.30 (1.45%)' },
-    { name: 'BANKEX', price: '64,593.98', chg: '+1,721.47 (2.74%)' },
-    { name: 'SENSEX50', price: '25,677.74', chg: '+504.96 (2.01%)' },
-  ];
+  const [selectedExpiry, setSelectedExpiry] = useState('09 Nov 2026 w');
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const expiries = ['09 Nov 2026 w', '17 Nov 2026 w', '23 Nov 2026 w', '01 Dec 2026 w', '08 Dec 2026 w', '29 Dec 2026 w'];
 
-  // 2. Trending Options Data
-  const trendingOptions = [
-    { symbol: 'SENSEX 05 NOV W 78800 CE', tag: 'ITM -2', ltp: '257.90', chg: '+238.85 (1253.81%)', oi: '29.60 L' },
-    { symbol: 'SENSEX 05 NOV W 78700 CE', tag: 'ITM -3', ltp: '331.60', chg: '+308.00 (1305.08%)', oi: '20.57 L' },
-    { symbol: 'SENSEX 05 NOV W 79000 CE', tag: 'ATM', ltp: '144.00', chg: '+131.25 (1029.41%)', oi: '84.48 L' },
-    { symbol: 'SENSEX 05 NOV W 78900 CE', tag: 'ITM -1', ltp: '193.95', chg: '+178.25 (1135.35%)', oi: '45.02 L' },
+  const optionData = [
+    { strike: 24400, callLtp: 358.05, callOi: '27.28 Cr', putLtp: 60.35, putOi: '142.61 Cr', iv: '17.88', pcr: '5.23' },
+    { strike: 24450, callLtp: 319.00, callOi: '15.78 Cr', putLtp: 70.50, putOi: '79.18 Cr', iv: '17.94', pcr: '5.02' },
+    { strike: 24500, callLtp: 282.40, callOi: '41.01 Cr', putLtp: 83.75, putOi: '154.53 Cr', iv: '17.60', pcr: '2.53' },
+    { strike: 24550, callLtp: 248.40, callOi: '31.39 Cr', putLtp: 97.85, putOi: '75.73 Cr', iv: '17.34', pcr: '2.41' },
+    { strike: 24600, callLtp: 214.30, callOi: '98.25 Cr', putLtp: 115.60, putOi: '124.96 Cr', iv: '17.27', pcr: '1.27' },
+    { strike: 24650, callLtp: 184.45, callOi: '88.12 Cr', putLtp: 135.55, putOi: '68.94 Cr', iv: '17.15', pcr: '0.78' },
+    { strike: 24700, callLtp: 158.05, callOi: '125.86 Cr', putLtp: 158.15, putOi: '37.53 Cr', iv: '17.10', pcr: '0.30' },
+    { strike: 24750, callLtp: 133.10, callOi: '55.51 Cr', putLtp: 183.70, putOi: '9.20 Cr', iv: '16.98', pcr: '0.17' },
+    { strike: 24800, callLtp: 112.00, callOi: '104.53 Cr', putLtp: 212.60, putOi: '14.68 Cr', iv: '16.92', pcr: '0.14' },
   ];
 
   return (
-    <div className="flex-1 bg-[#0F141C] text-gray-200 overflow-y-auto p-5 font-sans space-y-6 custom-scrollbar">
-      {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#1E2638] pb-3">
-        <div>
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2">
-            <FiActivity className="text-purple-500" />
-            <span>Option Chain & Derivatives</span>
-          </h1>
-          <p className="text-xs text-gray-400">Live option chain indices and trending options contracts</p>
+    <div className="flex-1 bg-[#0F141C] text-gray-200 flex flex-col overflow-hidden select-none">
+      
+      {/* Top Bar / Expiry Filter */}
+      <div className="bg-[#131B2A] border-b border-[#1E2638] px-4 py-2.5 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <span className="text-xs font-bold text-white flex items-center space-x-1.5">
+            <FiLayers className="text-purple-400" />
+            <span>Option Chain for NIFTY</span>
+          </span>
+          <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-semibold">
+            Spot: 24,693.60
+          </span>
         </div>
-        <span className="text-xs bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-mono">
-          Spot: 78,947.91
-        </span>
-      </div>
 
-      {/* Indices Bar */}
-      <div className="bg-[#131B2A] border border-[#1E2638] rounded-xl p-3 shadow-lg">
-        <h2 className="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Indices Option Chain Snapshot</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 text-xs">
-          {indices.map((idx, i) => (
-            <div key={i} className="bg-[#0F141C] p-2.5 rounded-lg border border-[#1E2638]">
-              <div className="font-bold text-gray-300">{idx.name}</div>
-              <div className="text-white font-mono mt-0.5 text-[11px]">₹{idx.price}</div>
-              <div className="text-emerald-400 text-[10px] mt-0.5">{idx.chg}</div>
-            </div>
+        {/* Expiry Dates */}
+        <div className="flex items-center space-x-1 overflow-x-auto">
+          {expiries.map((exp, idx) => (
+            <button
+              key={idx}
+              onClick={() => setSelectedExpiry(exp)}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition ${selectedExpiry === exp ? 'bg-purple-600 text-white' : 'bg-[#0F141C] text-gray-400 hover:text-white border border-[#1E2638]'}`}
+            >
+              {exp}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Trending Options Section */}
-      <div className="bg-[#131B2A] border border-[#1E2638] rounded-xl p-4 shadow-lg">
-        <h2 className="text-sm font-semibold text-gray-200 mb-3 flex items-center space-x-2">
-          <FiTrendingUp className="text-emerald-400" />
-          <span>Trending Options (Calls & Puts)</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-          {trendingOptions.map((opt, idx) => (
-            <div key={idx} className="bg-[#0F141C] p-3 rounded-xl border border-[#1E2638] flex flex-col justify-between space-y-2">
-              <div>
-                <div className="font-bold text-gray-100">{opt.symbol}</div>
-                <span className="text-[10px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800/50 mt-1 inline-block">
-                  {opt.tag}
-                </span>
-              </div>
-              <div className="flex justify-between items-end pt-2 border-t border-[#1E2638]">
-                <div>
-                  <div className="text-sm font-mono font-bold text-white">₹{opt.ltp}</div>
-                  <div className="text-[10px] text-emerald-400">{opt.chg}</div>
-                </div>
-                <div className="space-x-1">
-                  <button onClick={() => onOpenModal && onOpenModal('BUY')} className="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded font-bold text-[10px]">BUY</button>
-                  <button onClick={() => onOpenModal && onOpenModal('SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded font-bold text-[10px]">SELL</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Main Option Chain Table */}
+      <div className="flex-1 overflow-auto">
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="bg-[#131B2A] text-gray-400 border-b border-[#1E2638] sticky top-0 z-10 text-[11px]">
+              <th className="p-3 text-right">OI (lakhs)</th>
+              <th className="p-3 text-right">IV</th>
+              <th className="p-3 text-right">LTP</th>
+              <th className="p-3 text-center bg-purple-600/10 text-purple-400 font-bold">Calls (CE)</th>
+              <th className="p-3 text-center bg-[#1E2638] font-bold text-white">Strike</th>
+              <th className="p-3 text-center bg-purple-600/10 text-purple-400 font-bold">Puts (PE)</th>
+              <th className="p-3 text-left">LTP</th>
+              <th className="p-3 text-left">OI (lakhs)</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#1E2638]">
+            {optionData.map((row, idx) => {
+              const isAtm = row.strike === 24650;
+              const isHovered = hoveredRow === idx;
+
+              return (
+                <tr 
+                  key={idx} 
+                  onMouseEnter={() => setHoveredRow(idx)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                  className={`hover:bg-[#1E2638]/40 transition relative ${isAtm ? 'bg-[#1E2638]/60' : ''}`}
+                >
+                  <td className="p-3 text-right text-gray-300">{row.callOi}</td>
+                  <td className="p-3 text-right text-gray-400">{row.iv}</td>
+                  <td className="p-3 text-right font-medium text-white">₹{row.callLtp}</td>
+                  
+                  {/* Call Action or Buy Button */}
+                  <td className="p-3 text-center bg-green-500/5">
+                    {isHovered ? (
+                      <div className="flex items-center justify-center space-x-1">
+                        <button onClick={() => onOpenModal('BUY')} className="px-2 py-0.5 bg-green-600 text-white rounded text-[10px] font-bold">B</button>
+                        <button onClick={() => onOpenModal('SELL')} className="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] font-bold">S</button>
+                        <button title="Chart" className="p-1 bg-[#1E2638] hover:bg-purple-600 text-gray-300 hover:text-white rounded"><FiBarChart2 size={12}/></button>
+                      </div>
+                    ) : (
+                      <button onClick={() => onOpenModal('BUY')} className="px-2 py-1 bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white rounded text-[10px] font-bold transition">
+                        BUY CE
+                      </button>
+                    )}
+                  </td>
+
+                  {/* Strike Price */}
+                  <td className="p-3 text-center font-bold text-white bg-[#1E2638] border-x border-[#0F141C]">
+                    {row.strike} {isAtm && <span className="text-[9px] bg-purple-600 text-white px-1 rounded ml-1">ATM</span>}
+                  </td>
+
+                  {/* Put Action or Buy Button */}
+                  <td className="p-3 text-center bg-red-500/5">
+                    {isHovered ? (
+                      <div className="flex items-center justify-center space-x-1">
+                        <button onClick={() => onOpenModal('BUY')} className="px-2 py-0.5 bg-green-600 text-white rounded text-[10px] font-bold">B</button>
+                        <button onClick={() => onOpenModal('SELL')} className="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] font-bold">S</button>
+                        <button title="Chart" className="p-1 bg-[#1E2638] hover:bg-purple-600 text-gray-300 hover:text-white rounded"><FiBarChart2 size={12}/></button>
+                      </div>
+                    ) : (
+                      <button onClick={() => onOpenModal('SELL')} className="px-2 py-1 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded text-[10px] font-bold transition">
+                        BUY PE
+                      </button>
+                    )}
+                  </td>
+
+                  <td className="p-3 text-left font-medium text-white">₹{row.putLtp}</td>
+                  <td className="p-3 text-left text-gray-300">{row.putOi}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
