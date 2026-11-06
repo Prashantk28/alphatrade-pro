@@ -1,103 +1,115 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
+import AuthView from './components/AuthView';
 import HeaderBar from './components/HeaderBar';
+import Sidebar from './components/Sidebar';
 import WatchlistPanel from './components/WatchlistPanel';
-import PositionsDock from './components/PositionsDock';
-import OrderModal from './components/OrderModal';
-import TradingViewChart from './components/TradingViewChart';
-import ExploreDiscover from './components/ExploreDiscover';
 import OptionChainView from './components/OptionChainView';
 import FuturesView from './components/FuturesView';
 import CommoditiesView from './components/CommoditiesView';
+import ProfileView from './components/ProfileView';
 import PortfolioView from './components/PortfolioView';
 import FundsView from './components/FundsView';
-import AuthView from './components/AuthView';
+import BuySellModal from './components/BuySellModal';
+import CustomizationModal from './components/CustomizationModal';
+import { useTheme } from './context/ThemeContext';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [selectedStock, setSelectedStock] = useState('RELIANCE');
-  const [activeTab, setActiveTab] = useState('explore');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState('BUY');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
+  const [activeTab, setActiveTab] = useState('Option Chain');
+  const [selectedStock, setSelectedStock] = useState('NIFTY');
+  
+  // Modals state
+  const [isBuySellOpen, setIsBuySellOpen] = useState(false);
+  const [orderType, setOrderType] = useState('BUY');
+  const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
 
-  const [positionsList, setPositionsList] = useState([
-    { symbol: 'RELIANCE', qty: 15, avgPrice: 2955.00, ltp: 2971.74, pnl: 251.10, chg: '+0.53%', isBuy: true }
-  ]);
+  const { isDarkMode } = useTheme();
 
-  const handleAddPosition = (newOrder) => {
-    setPositionsList(prev => [
-      ...prev,
-      {
-        symbol: newOrder.symbol,
-        qty: newOrder.qty,
-        avgPrice: newOrder.price,
-        ltp: newOrder.price,
-        pnl: 0.00,
-        chg: '0.00%',
-        isBuy: newOrder.type === 'BUY'
-      }
-    ]);
+  // 1. Login Handler
+  const handleLogin = () => {
+    setIsLoggedIn(true);
   };
 
-  const openModal = (type) => {
-    setModalType(type);
-    setIsModalOpen(true);
+  // 2. Logout Handler
+  const handleLogout = () => {
+    setIsLoggedIn(false);
   };
 
+  // 3. Open Order Modal
+  const handleOpenOrderModal = (type = 'BUY') => {
+    setOrderType(type);
+    setIsBuySellOpen(true);
+  };
+
+  // If user is not logged in, render full AuthView screen
   if (!isLoggedIn) {
-    return (
-      <div className="h-screen w-screen bg-[#0F141C] flex items-center justify-center">
-        <AuthView onLoginSuccess={() => setIsLoggedIn(true)} />
-      </div>
-    );
+    return <AuthView onLogin={handleLogin} />;
   }
 
   return (
-    <div className="flex h-screen bg-[#0F141C] text-gray-200 overflow-hidden font-sans select-none">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className={`flex flex-col h-screen w-screen overflow-hidden ${
+      isDarkMode ? 'bg-[#0F141C] text-white' : 'bg-gray-100 text-gray-900'
+    }`}>
+      {/* Top Navigation Header */}
+      <HeaderBar 
+        onLogout={handleLogout} 
+        onOpenCustomization={() => setIsCustomizationOpen(true)}
+      />
 
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <HeaderBar onLogout={() => setIsLoggedIn(false)} />
+      {/* Main App Workspace Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar Navigation */}
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+        />
 
-        <div className="flex flex-1 overflow-hidden">
-          <div className="w-80 border-r border-[#1E2638] bg-[#131B2A] flex flex-col h-full">
-            <WatchlistPanel onSelectStock={setSelectedStock} selectedStock={selectedStock} />
-          </div>
-
-          <div className="flex flex-col flex-1 bg-[#0F141C] overflow-hidden">
-            {activeTab === 'explore' ? (
-              <ExploreDiscover onOpenModal={openModal} />
-            ) : activeTab === 'optionchain' ? (
-              <OptionChainView onOpenModal={openModal} />
-            ) : activeTab === 'futures' ? (
-              <FuturesView onOpenModal={openModal} />
-            ) : activeTab === 'commodities' ? (
-              <CommoditiesView onOpenModal={openModal} />
-            ) : activeTab === 'portfolio' ? (
-              <PortfolioView />
-            ) : activeTab === 'funds' ? (
-              <FundsView />
-            ) : (
-              <div className="flex-1 flex flex-col relative overflow-hidden">
-                <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
-              </div>
-            )}
-
-            <div className="h-48 border-t border-[#1E2638] bg-[#131B2A]">
-              <PositionsDock positions={positionsList} />
+        {/* Dynamic Main Workspace View */}
+        {activeTab === 'Profile' ? (
+          <ProfileView onLogout={handleLogout} />
+        ) : activeTab === 'Portfolio' ? (
+          <PortfolioView />
+        ) : activeTab === 'Funds' ? (
+          <FundsView />
+        ) : (
+          <>
+            {/* Watchlist Panel (Visible for trading tabs) */}
+            <div className="w-80 h-full border-r border-[#1E2638]">
+              <WatchlistPanel 
+                selectedStock={selectedStock} 
+                onSelectStock={setSelectedStock} 
+              />
             </div>
-          </div>
-        </div>
+
+            {/* Main Trading Dashboard View */}
+            <div className="flex-1 h-full overflow-hidden flex flex-col">
+              {activeTab === 'Option Chain' && (
+                <OptionChainView onOpenModal={handleOpenOrderModal} />
+              )}
+              {activeTab === 'Futures' && (
+                <FuturesView onOpenModal={handleOpenOrderModal} />
+              )}
+              {activeTab === 'Commodities' && (
+                <CommoditiesView onOpenModal={handleOpenOrderModal} />
+              )}
+            </div>
+          </>
+        )}
       </div>
 
-      <OrderModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        stockSymbol={selectedStock}
-        initialType={modalType}
-        onAddPosition={handleAddPosition}
-      />
+      {/* Global Action Modals */}
+      {isBuySellOpen && (
+        <BuySellModal 
+          type={orderType} 
+          onClose={() => setIsBuySellOpen(false)} 
+        />
+      )}
+
+      {isCustomizationOpen && (
+        <CustomizationModal 
+          onClose={() => setIsCustomizationOpen(false)} 
+        />
+      )}
     </div>
   );
 }
