@@ -10,7 +10,6 @@ import OptionChainView from './components/OptionChainView';
 import FuturesView from './components/FuturesView';
 import CommoditiesView from './components/CommoditiesView';
 import AuthView from './components/AuthView';
-import ProfileView from './components/ProfileView';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -58,7 +57,8 @@ export default function App() {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <HeaderBar />
+        {/* HeaderBar मध्ये onLogout पास केले आहे जेणेकरून ड्रॉपडाउनमधील लॉगआउट काम करेल */}
+        <HeaderBar onLogout={() => setIsLoggedIn(false)} />
 
         <div className="flex flex-1 overflow-hidden">
           <div className="w-80 border-r border-[#1E2638] bg-[#131B2A]">
@@ -74,8 +74,6 @@ export default function App() {
               <FuturesView onOpenModal={openModal} />
             ) : activeTab === 'commodities' ? (
               <CommoditiesView onOpenModal={openModal} />
-            ) : activeTab === 'profile' ? (
-              <ProfileView onLogout={() => setIsLoggedIn(false)} />
             ) : activeTab === 'chart' ? (
               <div className="flex-1 flex flex-col relative overflow-hidden">
                 <TradingViewChart stockSymbol={selectedStock} timeframe={selectedTimeframe} />
