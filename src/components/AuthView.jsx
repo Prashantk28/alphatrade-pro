@@ -8,8 +8,10 @@ export default function AuthView({ onLoginSuccess }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // इथे तुम्ही तुमची लॉगिन/रजिस्ट्रेशन लॉजिक जोडू शकता
-    if (onLoginSuccess) onLoginSuccess();
+    // लॉगिन किंवा रजिस्ट्रेशन यशस्वी झाल्यावर युझरला थेट मुख्य डॅशबोर्डवर पाठवणे
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
   };
 
   return (
