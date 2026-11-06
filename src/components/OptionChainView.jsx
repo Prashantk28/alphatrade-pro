@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiLayers, FiBarChart2, FiInfo } from 'react-icons/fi';
 
 export default function OptionChainView({ onOpenModal }) {
@@ -14,7 +14,7 @@ export default function OptionChainView({ onOpenModal }) {
     '29 Dec 2026 w'
   ];
 
-  const optionData = [
+  const [optionData, setOptionData] = useState([
     { volumeCall: '15.55 Cr', ivCall: '19.63', deltaCall: '0.7282', oiCall: '-26,50,2', callOiLakhs: '34.48', callLtp: 322.00, strike: 24550, pcr: '3.48', putLtp: 54.41, putOiLakhs: '27.22', oiPut: '+27,22,135', deltaPut: '-0.2601', ivPut: '18.52', volumePut: '16.00 Cr' },
     { volumeCall: '32.91 Cr', ivCall: '19.11', deltaCall: '0.6939', oiCall: '-21,95,375', callOiLakhs: '40.65', callLtp: 302.00, strike: 24600, pcr: '2.82', putLtp: 78.30, putOiLakhs: '114.75', oiPut: '+95,02,870', deltaPut: '-0.2972', ivPut: '18.18', volumePut: '27.31 Cr' },
     { volumeCall: '28.07 Cr', ivCall: '18.99', deltaCall: '0.6530', oiCall: '+3,82,590', callOiLakhs: '29.62', callLtp: 265.80, strike: 24650, pcr: '2.96', putLtp: 92.10, putOiLakhs: '87.8', oiPut: '+82,43,300', deltaPut: '-0.3386', ivPut: '17.89', volumePut: '14.96 Cr' },
@@ -27,7 +27,26 @@ export default function OptionChainView({ onOpenModal }) {
     { volumeCall: '32.46 Cr', ivCall: '18.41', deltaCall: '0.3329', oiCall: '+35,75,585', callOiLakhs: '155.35', callLtp: 91.15, strike: 25000, pcr: '0.10', putLtp: 266.80, putOiLakhs: '15.62', oiPut: '+7,86,890', deltaPut: '-0.6766', ivPut: '17.39', volumePut: '1.28 Cr' },
     { volumeCall: '8.70 Cr', ivCall: '18.49', deltaCall: '0.2917', oiCall: '+17,75,735', callOiLakhs: '33.44', callLtp: 76.05, strike: 25050, pcr: '0.04', putLtp: 303.60, putOiLakhs: '1.46', oiPut: '+1,32,600', deltaPut: '-0.7188', ivPut: '17.53', volumePut: '8.80 L' },
     { volumeCall: '12.21 Cr', ivCall: '18.58', deltaCall: '0.2537', oiCall: '+19,61,830', callOiLakhs: '58.64', callLtp: 63.35, strike: 25100, pcr: '0.02', putLtp: 339.70, putOiLakhs: '1.46', oiPut: '+1,10,565', deltaPut: '-0.7582', ivPut: '17.63', volumePut: '8.93 L' },
-  ];
+  ]);
+
+  // Real-time Tick Simulator for Option Chain LTP Fluctuation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOptionData(prev =>
+        prev.map(row => {
+          const callDelta = (Math.random() - 0.48) * 1.5;
+          const putDelta = (Math.random() - 0.52) * 1.5;
+          return {
+            ...row,
+            callLtp: Math.max(0.5, parseFloat((row.callLtp + callDelta).toFixed(2))),
+            putLtp: Math.max(0.5, parseFloat((row.putLtp + putDelta).toFixed(2)))
+          };
+        })
+      );
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex-1 bg-[#0F141C] text-gray-200 flex flex-col overflow-hidden select-none">
@@ -137,7 +156,7 @@ export default function OptionChainView({ onOpenModal }) {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-green-400">₹{row.callLtp}</span>
+                      <span className="text-green-400 transition-colors duration-300">₹{row.callLtp.toFixed(2)}</span>
                     )}
                   </td>
 
@@ -177,7 +196,7 @@ export default function OptionChainView({ onOpenModal }) {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-red-400">₹{row.putLtp}</span>
+                      <span className="text-red-400 transition-colors duration-300">₹{row.putLtp.toFixed(2)}</span>
                     )}
                   </td>
 
