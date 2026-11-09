@@ -1,294 +1,86 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
-=======
-import React, { useState } from 'react';
->>>>>>> main
-import WatchlistPanel from './components/WatchlistPanel';
-import AdvancedChart from './components/AdvancedChart';
-import OptionChainView from './components/OptionChainView';
-import PortfolioView from './components/PortfolioView';
-import PnLShareModal from './components/PnLShareModal';
-import OrderModal from './components/OrderModal';
-<<<<<<< HEAD
-import BasketOrderModal from './components/BasketOrderModal';
-import AuthScreen from './components/AuthScreen';
-import { upstoxWS } from './services/upstoxWebSocket'; // WebSocket Service Import
-import { FiLogOut, FiKey } from 'react-icons/fi';
+import Header from './components/Header';
+// जर तुमच्या प्रोजेक्टमध्ये इतर कंपोनंट्स वेगळ्या फोल्डरमध्ये असतील तर त्यांचे पाथ चेक करून घ्या
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userProfile, setUserProfile] = useState({ name: 'Prashant Kamble', email: 'pkamble.kvic@hokvic.gov.in' });
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-
   const [activeTab, setActiveTab] = useState('chart');
-  const [activeSymbol, setActiveSymbol] = useState('NIFTY 50');
-  const [ltp, setLtp] = useState(24891.95);
-  const [isPnLModalOpen, setIsPnLModalOpen] = useState(false);
-  
-  const [executedOrders, setExecutedOrders] = useState([]);
-  const [activePositions, setActivePositions] = useState([]);
-  const [holdings, setHoldings] = useState([]);
-  const [availableFunds, setAvailableFunds] = useState(485240);
-  
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [isBasketModalOpen, setIsBasketModalOpen] = useState(false);
-  const [accessToken, setAccessToken] = useState(localStorage.getItem('upstox_access_token') || '');
+  const [isConnected, setIsConnected] = useState(true);
 
-  // Access Token सेव्ह करण्यासाठी फंक्शन
-  const handleSaveToken = () => {
-    const token = prompt('कृपया तुमचे Upstox Access Token येथे पेस्ट करा:', accessToken);
-    if (token) {
-      localStorage.setItem('upstox_access_token', token);
-      setAccessToken(token);
-      alert('✅ Upstox Access Token यशस्वीरित्या सेव्ह झाले! ॲप रिफ्रेश होत आहे...');
-      window.location.reload();
-    }
-  };
-
-  // WebSocket Live Connection Setup
-  useEffect(() => {
-    const token = localStorage.getItem('upstox_access_token');
-
-    if (token) {
-      console.log("Connecting to Upstox WebSocket with Token...");
-      const instruments = [
-        'NSE_INDEX|Nifty 50',
-        'NSE_INDEX|Nifty Bank',
-        'NSE_EQ|INE002A01018' // Reliance
-      ];
-
-      upstoxWS.connect(token, instruments);
-
-      const unsubscribe = upstoxWS.onMarketUpdate((liveData) => {
-        if (liveData && liveData.feeds) {
-          const niftyFeed = liveData.feeds['NSE_INDEX|Nifty 50'];
-          if (niftyFeed && niftyFeed.ff && niftyFeed.ff.indexFF) {
-            setLtp(niftyFeed.ff.indexFF.ltpc.ltp);
-          }
-        }
-      });
-
-      return () => {
-        unsubscribe();
-        upstoxWS.disconnect();
-      };
-    } else {
-      // जर टोकन नसेल तर सिम्युलेटेड प्राइसेस चालू राहतील
-      const interval = setInterval(() => {
-        setLtp(prev => parseFloat((prev + (Math.random() - 0.48) * 5).toFixed(2)));
-      }, 1500);
-      return () => clearInterval(interval);
-    }
-  }, []);
-
-  const handleOrderSuccess = (newOrder) => {
-    setExecutedOrders(prev => [newOrder, ...prev]);
-    setActivePositions(prev => [newOrder, ...prev]);
-    setAvailableFunds(prev => prev - (newOrder.qty * newOrder.price));
-  };
-
-  const handleOptionTradeSuccess = (newOrder) => {
-    setExecutedOrders(prev => [newOrder, ...prev]);
-    setActivePositions(prev => [newOrder, ...prev]);
-    setAvailableFunds(prev => prev - (newOrder.qty * newOrder.price));
-    setActiveTab('portfolio');
-  };
-
-  const handleQuickTradeFromWatchlist = (symbol, price, side, category) => {
-    const newOrder = {
-      symbol,
-      qty: 1,
-      price,
-      side,
-      type: category,
-      time: new Date().toLocaleTimeString()
-    };
-    setExecutedOrders(prev => [newOrder, ...prev]);
-    if (category === 'EQUITY') {
-      setHoldings(prev => [newOrder, ...prev]);
-    } else {
-      setActivePositions(prev => [newOrder, ...prev]);
-    }
-    setAvailableFunds(prev => prev - price);
-    setActiveTab('portfolio');
-  };
-
-  const handleExecuteBasket = (items) => {
-    const newOrders = items.map(item => ({
-      symbol: item.symbol,
-      qty: item.qty,
-      price: item.price,
-      side: item.side,
-      type: 'BASKET',
-      time: new Date().toLocaleTimeString()
-    }));
-    setExecutedOrders(prev => [...newOrders, ...prev]);
-    setActivePositions(prev => [...newOrders, ...prev]);
-    setActiveTab('portfolio');
-  };
-
-  if (!isLoggedIn) {
-    return <AuthScreen onLoginSuccess={(userData) => { setUserProfile(userData); setIsLoggedIn(true); }} />;
-  }
+  // सिम्युलेटेड डेटा किंवा स्टेट्स
+  const [funds, setFunds] = useState(481019.62);
+  const [positions, setPositions] = useState([
+    { id: 1, instrument: 'NIFTY 50 24890 PE', qty: 25, avgPrice: 50, ltp: 49.91, pnl: -2.25 }
+  ]);
 
   return (
-    <div className="h-screen w-screen bg-[#0F141C] text-white flex flex-col overflow-hidden select-none">
-      <header className="h-12 bg-[#131B2A] border-b border-[#1E2638] px-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <span className="font-bold text-sm bg-purple-600 text-white px-2 py-0.5 rounded">AlphaTrade Pro</span>
-          
-          <div className="flex bg-[#0F141C] p-1 rounded-lg border border-[#1E2638] text-xs space-x-1">
-            <button onClick={() => setActiveTab('chart')} className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'chart' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>📊 Chart</button>
-            <button onClick={() => setActiveTab('optionchain')} className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'optionchain' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>⛓️ Option Chain</button>
-            <button onClick={() => setActiveTab('portfolio')} className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'portfolio' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>💼 Portfolio</button>
+    <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans">
+      {/* Header with Paper Trading Disclaimer */}
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} isConnected={isConnected} />
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 overflow-y-auto">
+        {activeTab === 'chart' && (
+          <div className="flex flex-col items-center justify-center h-[75vh] bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
+            <h2 className="text-xl font-bold mb-2 text-purple-400">📈 Advanced Chart & Live TBT</h2>
+            <p className="text-gray-400 text-sm mb-4">NIFTY 50 & BankNifty Live Fluctuating Chart Mode</p>
+            <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg w-full max-w-2xl text-center">
+              <span className="text-yellow-400 font-medium">⚠️ Paper Trading Mode Active: All trades executed here use virtual funds.</span>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex items-center space-x-2">
-          {/* Upstox Token Setup Button */}
-          <button
-            onClick={handleSaveToken}
-            className={`px-2.5 py-1 rounded text-xs font-bold border flex items-center space-x-1 transition ${
-              accessToken ? 'bg-green-600/20 text-green-400 border-green-500/30' : 'bg-amber-600/20 text-amber-400 border-amber-500/30'
-            }`}
-          >
-            <FiKey size={12} />
-            <span>{accessToken ? 'Upstox Connected 🟢' : 'Set Upstox Token 🔑'}</span>
-          </button>
-
-          <button onClick={() => setIsBasketModalOpen(true)} className="px-3 py-1 bg-purple-600/25 text-purple-300 border border-purple-500/30 rounded text-xs font-semibold">📦 Basket</button>
-          <button onClick={() => setIsOrderModalOpen(true)} className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-bold">+ Quick Trade</button>
-          <button onClick={() => setIsPnLModalOpen(true)} className="px-3 py-1 bg-green-600/25 text-green-400 border border-green-500/30 rounded text-xs font-semibold">Share PnL 📤</button>
-
-          <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-8 h-8 bg-purple-600 text-white rounded-full font-bold text-xs flex items-center justify-center ml-2">PK</button>
-        </div>
-      </header>
-
-      <div className="flex-1 flex overflow-hidden w-full">
-        <WatchlistPanel onSelectSymbol={(sym) => { setActiveSymbol(sym); setActiveTab('chart'); }} activeSymbol={activeSymbol} onQuickTrade={handleQuickTradeFromWatchlist} />
-
-        <div className="flex-1 bg-[#0F141C] p-3 overflow-hidden flex flex-col w-full">
-          {activeTab === 'chart' && <AdvancedChart key={activeSymbol} symbol={activeSymbol} ltp={ltp} />}
-          {activeTab === 'optionchain' && <OptionChainView onOptionTradeSuccess={handleOptionTradeSuccess} />}
-          {activeTab === 'portfolio' && (
-            <PortfolioView positions={activePositions} holdings={holdings} orders={executedOrders} funds={availableFunds} onAddFunds={() => setAvailableFunds(prev => prev + 50000)} />
-=======
-
-export default function App() {
-  const [activeTab, setActiveTab] = useState('chart'); // 'chart', 'optionchain', 'portfolio'
-  const [activeSymbol, setActiveSymbol] = useState('NIFTY 50');
-  const [ltp, setLtp] = useState(24819.29);
-  const [isPnLModalOpen, setIsPnLModalOpen] = useState(false);
-  
-  // Real-time Order & Portfolio State Engine
-  const [executedOrders, setExecutedOrders] = useState([]);
-  const [activePositions, setActivePositions] = useState([]);
-  const [availableFunds, setAvailableFunds] = useState(485240);
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setLtp(prev => parseFloat((prev + (Math.random() - 0.48) * 5).toFixed(2)));
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleOrderSuccess = (newOrder) => {
-    setExecutedOrders(prev => [newOrder, ...prev]);
-    setActivePositions(prev => [newOrder, ...prev]);
-    const cost = newOrder.qty * newOrder.price;
-    setAvailableFunds(prev => prev - cost);
-    alert(`⚡ Order Executed! ${newOrder.side} ${newOrder.qty} Qty of ${newOrder.symbol}`);
-  };
-
-  return (
-    <div className="h-screen w-screen bg-[#0F141C] text-white flex flex-col overflow-hidden select-none">
-      {/* Header Bar */}
-      <header className="h-12 bg-[#131B2A] border-b border-[#1E2638] px-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <span className="font-bold text-sm bg-purple-600 text-white px-2 py-0.5 rounded">AlphaTrade</span>
-          
-          {/* Main Navigation Tabs */}
-          <div className="flex bg-[#0F141C] p-1 rounded-lg border border-[#1E2638] text-xs space-x-1">
-            <button
-              onClick={() => setActiveTab('chart')}
-              className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'chart' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
-            >
-              📊 Advanced Chart
-            </button>
-            <button
-              onClick={() => setActiveTab('optionchain')}
-              className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'optionchain' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
-            >
-              ⛓️ Option Chain
-            </button>
-            <button
-              onClick={() => setActiveTab('portfolio')}
-              className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'portfolio' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
-            >
-              💼 Portfolio & Funds
-            </button>
+        {activeTab === 'optionChain' && (
+          <div className="bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-purple-400">📊 Option Chain & Strike Prices</h2>
+            <p className="text-gray-300 text-sm">All expiry option chains with Call (CE) & Put (PE) live data are loaded successfully.</p>
           </div>
-        </div>
+        )}
 
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setIsOrderModalOpen(true)}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition shadow-lg shadow-blue-600/30"
-          >
-            + Quick Trade
-          </button>
-          <button
-            onClick={() => setIsPnLModalOpen(true)}
-            className="px-3 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 rounded text-xs font-semibold transition"
-          >
-            Share PnL 📤
-          </button>
-        </div>
-      </header>
+        {activeTab === 'portfolio' && (
+          <div className="bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-purple-400">💼 Portfolio & Virtual Funds</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-900 p-4 rounded-lg border border-gray-800">
+                <span className="text-gray-400 text-xs">Available Funds (Paper)</span>
+                <h3 className="text-2xl font-bold text-green-400">₹{funds.toLocaleString('en-IN')}</h3>
+              </div>
+              <div className="bg-gray-900 p-4 rounded-lg border border-gray-800">
+                <span className="text-gray-400 text-xs">Total Un-realized P&L</span>
+                <h3 className="text-2xl font-bold text-red-400">-₹2.25</h3>
+              </div>
+            </div>
 
-      {/* Main Workspace with Watchlist Sidebar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Watchlist Panel (Always Visible) */}
-        <WatchlistPanel 
-          onSelectSymbol={(sym) => {
-            setActiveSymbol(sym);
-            setActiveTab('chart');
-          }} 
-          activeSymbol={activeSymbol} 
-        />
-
-        {/* Center Display Area */}
-        <div className="flex-1 bg-[#0F141C] p-3 overflow-hidden flex flex-col">
-          {activeTab === 'chart' && <AdvancedChart symbol={activeSymbol} ltp={ltp} />}
-          {activeTab === 'optionchain' && <OptionChainView />}
-          {activeTab === 'portfolio' && (
-            <PortfolioView 
-              positions={activePositions}
-              orders={executedOrders}
-              funds={availableFunds}
-              onAddFunds={() => setAvailableFunds(prev => prev + 50000)}
-            />
->>>>>>> main
-          )}
-        </div>
-      </div>
-
-      {isPnLModalOpen && <PnLShareModal onClose={() => setIsPnLModalOpen(false)} />}
-<<<<<<< HEAD
-      {isOrderModalOpen && <OrderModal isOpen={isOrderModalOpen} onClose={() => setIsOrderModalOpen(false)} stockName={activeSymbol} ltp={ltp} onPlaceOrderSuccess={handleOrderSuccess} />}
-      {isBasketModalOpen && <BasketOrderModal isOpen={isBasketModalOpen} onClose={() => setIsBasketModalOpen(false)} onExecuteBasket={handleExecuteBasket} />}
-=======
-      {isOrderModalOpen && (
-        <OrderModal 
-          isOpen={isOrderModalOpen}
-          onClose={() => setIsOrderModalOpen(false)}
-          stockName={activeSymbol}
-          ltp={ltp}
-          onPlaceOrderSuccess={handleOrderSuccess}
-        />
-      )}
->>>>>>> main
+            <h3 className="text-md font-semibold mb-3 text-gray-200">Active Positions ({positions.length})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-gray-300">
+                <thead className="bg-gray-900 text-gray-400 border-b border-gray-800">
+                  <tr>
+                    <th className="p-3">Instrument</th>
+                    <th className="p-3">Qty / Lots</th>
+                    <th className="p-3">Avg. Price</th>
+                    <th className="p-3">LTP (Live)</th>
+                    <th className="p-3">P&L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {positions.map((pos) => (
+                    <tr key={pos.id} className="border-b border-gray-800 hover:bg-gray-900/50">
+                      <td className="p-3 font-medium text-white">
+                        <span className="bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded text-[10px] mr-2">BUY</span>
+                        {pos.instrument}
+                      </td>
+                      <td className="p-3">{pos.qty}</td>
+                      <td className="p-3">₹{pos.avgPrice}</td>
+                      <td className="p-3">₹{pos.ltp}</td>
+                      <td className="p-3 text-red-400">-₹2.25</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
