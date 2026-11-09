@@ -12,7 +12,7 @@ export default function Header({ activeTab, setActiveTab, isConnected }) {
         </div>
       </div>
 
-      {/* Navigation Tabs (जसे स्क्रीनशॉटमध्ये आहेत) */}
+      {/* Navigation Tabs */}
       <nav className="flex items-center space-x-2">
         <button
           onClick={() => setActiveTab && setActiveTab('chart')}
@@ -49,7 +49,7 @@ export default function Header({ activeTab, setActiveTab, isConnected }) {
         </button>
       </nav>
 
-      {/* Right Side Actions (Upstox Connected, Basket, Quick Trade, PnL) */}
+      {/* Right Side Actions */}
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-1.5 bg-gray-900 px-3 py-1.5 rounded-full border border-gray-800 text-xs">
           <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
