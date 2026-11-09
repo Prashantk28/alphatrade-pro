@@ -1,133 +1,96 @@
 import React, { useState } from 'react';
+import AuthView from './components/AuthView';
+import WatchlistPanel from './components/WatchlistPanel';
+import AdvancedChart from './components/AdvancedChart';
+import OptionChainView from './components/OptionChainView';
+import PortfolioView from './components/PortfolioView';
+import PnLShareModal from './components/PnLShareModal';
 
-export default function AuthView({ onLoginSuccess }) {
-  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeTab, setActiveTab] = useState('chart'); // 'chart', 'optionchain', 'portfolio', 'basket'
+  const [activeSymbol, setActiveSymbol] = useState('NIFTY 50');
+  const [ltp, setLtp] = useState(24816.67);
+  const [isPnLModalOpen, setIsPnLModalOpen] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // लॉगिन किंवा रजिस्ट्रेशन यशस्वी झाल्यावर युझरला थेट मुख्य डॅशबोर्डवर पाठवणे
-    if (onLoginSuccess) {
-      onLoginSuccess();
-    }
-  };
+  React.useEffect(() => {
+    if (!isLoggedIn) return;
+    const interval = setInterval(() => {
+      setLtp(prev => parseFloat((prev + (Math.random() - 0.48) * 5).toFixed(2)));
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  if (!isLoggedIn) {
+    return <AuthView onLoginSuccess={() => setIsLoggedIn(true)} />;
+  }
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-[#0F141C] text-gray-200 p-6 select-none h-full">
-      <div className="w-full max-w-md bg-[#131B2A] border border-[#1E2638] rounded-2xl p-8 shadow-2xl">
-        
-        {/* Logo & Header */}
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-3 shadow-lg shadow-purple-600/30">
-            α
+    <div className="h-screen w-screen bg-[#0F141C] text-white flex flex-col overflow-hidden select-none">
+      {/* Header Bar */}
+      <header className="h-12 bg-[#131B2A] border-b border-[#1E2638] px-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <span className="font-bold text-sm bg-purple-600 text-white px-2 py-0.5 rounded">AlphaTrade</span>
+          
+          {/* Main Navigation Tabs */}
+          <div className="flex bg-[#0F141C] p-1 rounded-lg border border-[#1E2638] text-xs space-x-1">
+            <button
+              onClick={() => setActiveTab('chart')}
+              className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'chart' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              📊 Chart
+            </button>
+            <button
+              onClick={() => setActiveTab('optionchain')}
+              className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'optionchain' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              ⛓️ Option Chain
+            </button>
+            <button
+              onClick={() => setActiveTab('portfolio')}
+              className={`px-3 py-0.5 rounded font-semibold transition ${activeTab === 'portfolio' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              💼 Portfolio & Funds
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-white">
-            {authMode === 'login' && 'Login to AlphaTrade Pro'}
-            {authMode === 'register' && 'Create Your Account'}
-            {authMode === 'forgot' && 'Reset Password'}
-          </h1>
-          <p className="text-xs text-gray-400 mt-1">
-            {authMode === 'login' && 'Enter your credentials to access your trading dashboard'}
-            {authMode === 'register' && 'Join AlphaTrade Pro for seamless paper trading simulation'}
-            {authMode === 'forgot' && 'Enter your registered email to receive reset instructions'}
-          </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {authMode === 'register' && (
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">Full Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Prashant Kamble"
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">Email Address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
-              className="w-full bg-[#0F141C] border border-[#1E2638] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
-            />
-          </div>
-
-          {authMode !== 'forgot' && (
-            <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#0F141C] border border-[#1E2638] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition"
-              />
-            </div>
-          )}
-
-          {authMode === 'login' && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setAuthMode('forgot')}
-                className="text-xs text-purple-400 hover:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
-
+        <div className="flex items-center space-x-3">
           <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-purple-600/20"
+            onClick={() => setIsPnLModalOpen(true)}
+            className="px-3 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 rounded text-xs font-semibold transition"
           >
-            {authMode === 'login' && 'Sign In'}
-            {authMode === 'register' && 'Register Account'}
-            {authMode === 'forgot' && 'Send Reset Link'}
+            Share PnL 📤
           </button>
-        </form>
-
-        {/* Footer Switches */}
-        <div className="mt-6 text-center text-xs text-gray-400">
-          {authMode === 'login' && (
-            <p>
-              Don't have an account?{' '}
-              <button onClick={() => setAuthMode('register')} className="text-purple-400 font-medium hover:underline">
-                Sign Up
-              </button>
-            </p>
-          )}
-          {authMode === 'register' && (
-            <p>
-              Already have an account?{' '}
-              <button onClick={() => setAuthMode('login')} className="text-purple-400 font-medium hover:underline">
-                Sign In
-              </button>
-            </p>
-          )}
-          {authMode === 'forgot' && (
-            <p>
-              Remembered your password?{' '}
-              <button onClick={() => setAuthMode('login')} className="text-purple-400 font-medium hover:underline">
-                Back to Sign In
-              </button>
-            </p>
-          )}
+          <button
+            onClick={() => setIsLoggedIn(false)}
+            className="px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded text-xs font-semibold transition"
+          >
+            Logout
+          </button>
         </div>
+      </header>
 
+      {/* Main Workspace */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Watchlist Panel with Filters */}
+        <WatchlistPanel 
+          onSelectSymbol={(sym) => {
+            setActiveSymbol(sym);
+            setActiveTab('chart');
+          }} 
+          activeSymbol={activeSymbol} 
+        />
+
+        {/* Dynamic Center Display */}
+        <div className="flex-1 bg-[#0F141C] p-3 overflow-hidden flex flex-col">
+          {activeTab === 'chart' && <AdvancedChart symbol={activeSymbol} ltp={ltp} />}
+          {activeTab === 'optionchain' && <OptionChainView />}
+          {activeTab === 'portfolio' && <PortfolioView />}
+        </div>
       </div>
+
+      {isPnLModalOpen && <PnLShareModal onClose={() => setIsPnLModalOpen(false)} />}
     </div>
   );
 }
