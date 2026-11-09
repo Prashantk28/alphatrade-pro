@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from './components/Header';
-// जर तुमच्या प्रोजेक्टमध्ये इतर कंपोनंट्स वेगळ्या फोल्डरमध्ये असतील तर त्यांचे पाथ चेक करून घ्या
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('chart');
   const [isConnected, setIsConnected] = useState(true);
 
-  // सिम्युलेटेड डेटा किंवा स्टेट्स
+  // सिम्युलेटेड डेटा आणि स्टेट्स
   const [funds, setFunds] = useState(481019.62);
   const [positions, setPositions] = useState([
     { id: 1, instrument: 'NIFTY 50 24890 PE', qty: 25, avgPrice: 50, ltp: 49.91, pnl: -2.25 }
@@ -23,8 +22,8 @@ export default function App() {
           <div className="flex flex-col items-center justify-center h-[75vh] bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
             <h2 className="text-xl font-bold mb-2 text-purple-400">📈 Advanced Chart & Live TBT</h2>
             <p className="text-gray-400 text-sm mb-4">NIFTY 50 & BankNifty Live Fluctuating Chart Mode</p>
-            <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg w-full max-w-2xl text-center">
-              <span className="text-yellow-400 font-medium">⚠️ Paper Trading Mode Active: All trades executed here use virtual funds.</span>
+            <div className="bg-gray-900 border border-yellow-500/30 p-4 rounded-lg w-full max-w-2xl text-center shadow-md">
+              <span className="text-yellow-400 font-semibold text-sm">⚠️ Paper Trading Mode Active: All orders executed here use virtual funds only.</span>
             </div>
           </div>
         )}
