@@ -5,19 +5,19 @@ export default function Header({ activeTab, setActiveTab, isConnected }) {
     <header className="bg-[#12141c] border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
       {/* Logo & Paper Trading Disclaimer Badge */}
       <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
-          <span className="bg-purple-600 text-white font-bold px-2.5 py-1 rounded-lg text-sm tracking-wide">
+        <div className="flex items-center space-x-1.5">
+          <span className="bg-purple-600 text-white font-bold px-2.5 py-1 rounded-lg text-sm tracking-wide shadow-md">
             AlphaTrade Pro
           </span>
         </div>
 
         {/* Paper Trading Disclaimer Tag */}
-        <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5 shadow-sm">
+        <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1.5 shadow-sm">
           ⚠️ Paper Trading (Virtual Funds Only)
         </span>
       </div>
 
-      {/* Navigation Tabs (जसे जुन्या स्क्रीनशॉटमध्ये होते) */}
+      {/* Navigation Tabs */}
       <nav className="flex items-center space-x-2">
         <button
           onClick={() => setActiveTab && setActiveTab('chart')}
@@ -27,8 +27,7 @@ export default function Header({ activeTab, setActiveTab, isConnected }) {
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
         >
-          <span className="bg-purple-500 text-white p-0.5 rounded text-[10px]">📊</span>
-          <span>Chart</span>
+          <span>📊 Advanced Chart</span>
         </button>
 
         <button
@@ -50,11 +49,11 @@ export default function Header({ activeTab, setActiveTab, isConnected }) {
               : 'text-gray-400 hover:text-white hover:bg-gray-800'
           }`}
         >
-          <span>Portfolio</span>
+          <span>Portfolio & Funds</span>
         </button>
       </nav>
 
-      {/* Right Side Actions (Upstox Status, Basket, Quick Trade, PnL) */}
+      {/* Right Side Actions */}
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-1.5 bg-gray-900 px-3 py-1.5 rounded-full border border-gray-800 text-xs">
           <span className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
