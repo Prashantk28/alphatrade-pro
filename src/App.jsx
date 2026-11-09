@@ -70,11 +70,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans">
+      {/* Header */}
       <Header activeTab={activeTab} setActiveTab={setActiveTab} isConnected={isConnected} />
+
+      {/* ⚠️ Paper Trading Warning Banner */}
+      <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 flex items-center justify-center space-x-2 text-amber-400 text-xs font-medium">
+        <span>⚠️</span>
+        <span>Paper Trading Mode Active — Virtual Funds Only (No Real Money Involved)</span>
+      </div>
 
       <main className="flex-1 p-4 overflow-y-auto">
         {activeTab === 'chart' && (
-          <div className="flex flex-col items-center justify-center h-[75vh] bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
+          <div className="flex flex-col items-center justify-center h-[72vh] bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
             <h2 className="text-xl font-bold mb-2 text-purple-400">📈 Advanced Chart & Live TBT</h2>
             <p className="text-gray-400 text-sm mb-4">NIFTY 50 & BankNifty Live Fluctuating Chart Mode</p>
           </div>
