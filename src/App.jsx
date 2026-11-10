@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  // सुरुवातीला Default Login Screen दिसण्यासाठी initialState false ठेवली आहे
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('chart');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
@@ -19,7 +20,7 @@ export default function App() {
     { name: 'TATAMOTORS', price: '₹989.4', change: '+0.64 (+0.01%)', isUp: true },
   ];
 
-  // जर युजर लॉगआउट असेल तर हा Login Page दिसेल
+  // १. युजर लॉगिन होण्यापूर्वी दिसणारा Login Screen
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -53,7 +54,7 @@ export default function App() {
               />
             </div>
             <div className="text-right">
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to email"); }} className="text-[11px] text-purple-400 hover:underline">Forgot Password?</a>
+              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to registered email"); }} className="text-[11px] text-purple-400 hover:underline">Forgot Password?</a>
             </div>
 
             <button 
@@ -72,7 +73,7 @@ export default function App() {
     );
   }
 
-  // डॅशबोर्ड व्ह्यू (लॉगिन झाल्यावर दिसणारा स्क्रीन)
+  // २. यशस्वी लॉगिन झाल्यानंतर दिसणारा Main Dashboard Screen
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative">
       
