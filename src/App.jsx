@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [activeTab, setActiveTab] = useState('chart');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
+  
+  const [email, setEmail] = useState('pkamble.kvic@hokvic.gov.in');
+  const [password, setPassword] = useState('••••••••');
 
   const stocks = [
     { name: 'NIFTY 50', price: '₹24,893.03', change: '+1.26 (+0.01%)', isUp: true },
@@ -15,13 +19,60 @@ export default function App() {
     { name: 'TATAMOTORS', price: '₹989.4', change: '+0.64 (+0.01%)', isUp: true },
   ];
 
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to Logout from AlphaTrade Pro?")) {
-      alert("Logged out successfully!");
-      window.location.reload();
-    }
-  };
+  // जर युजर लॉगआउट असेल तर हा Login Page दिसेल
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
+        <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+          <div className="mb-6">
+            <span className="bg-purple-600 text-white font-bold px-4 py-1.5 rounded-lg text-base tracking-wide shadow-md">
+              AlphaTrade Pro
+            </span>
+            <p className="text-gray-400 text-xs mt-2">Login to your trading terminal</p>
+          </div>
 
+          <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600"
+                required
+              />
+            </div>
+            <div className="text-right">
+              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to email"); }} className="text-[11px] text-purple-400 hover:underline">Forgot Password?</a>
+            </div>
+
+            <button 
+              type="submit"
+              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2"
+            >
+              Login to Terminal &rarr;
+            </button>
+          </form>
+
+          <p className="text-gray-400 text-xs mt-6">
+            Don't have an account? <span className="text-purple-400 cursor-pointer font-semibold" onClick={() => alert("Registration is currently restricted to invited traders.")}>Sign Up</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // डॅशबोर्ड व्ह्यू (लॉगिन झाल्यावर दिसणारा स्क्रीन)
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative">
       
@@ -122,8 +173,8 @@ export default function App() {
                 </div>
                 <div className="border-t border-gray-800 pt-1 mt-1">
                   <button
-                    onClick={() => { setShowProfileMenu(false); handleLogout(); }}
-                    className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold transition-all"
+                    onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); }}
+                    className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold transition-all cursor-pointer"
                   >
                     <span>🚪 Logout</span>
                   </button>
