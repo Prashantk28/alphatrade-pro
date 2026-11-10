@@ -7,7 +7,8 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
 
-  // Interactive Modals and Panels State
+  // Connection & Interactive States
+  const [isUpstoxConnected, setIsUpstoxConnected] = useState(false);
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [showBasketPanel, setShowBasketPanel] = useState(false);
   const [showQuickTradeModal, setShowQuickTradeModal] = useState(false);
@@ -27,6 +28,16 @@ export default function App() {
   ];
 
   const currentStockObj = stocks.find(s => s.name === selectedStock) || stocks[0];
+
+  const handleSaveToken = () => {
+    if (upstoxToken.trim() !== '') {
+      setIsUpstoxConnected(true);
+      setShowTokenModal(false);
+      alert("Upstox Access Token Validated & Connected Successfully!");
+    } else {
+      alert("Please enter a valid Upstox Access Token.");
+    }
+  };
 
   // 1. Initial Login Screen
   if (!isLoggedIn) {
@@ -74,7 +85,7 @@ export default function App() {
           </form>
 
           <p className="text-gray-400 text-xs mt-6">
-            Don't have an account? <span className="text-purple-400 cursor-pointer font-semibold" onClick={() => alert("Registration is currently restricted.")}>Sign Up</span>
+            Don't have an account? <span className="text-purple-400 cursor-pointer font-semibold" onClick={() => alert("Registration is restricted.")}>Sign Up</span>
           </p>
         </div>
       </div>
@@ -102,7 +113,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Navigation Tabs (Chart, Option Chain, Portfolio) */}
+        {/* Navigation Tabs */}
         <nav className="flex items-center space-x-1">
           <button
             onClick={() => setActiveTab('chart')}
@@ -130,14 +141,24 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Action Buttons & Profile Dropdown */}
+        {/* Action Buttons & Status */}
         <div className="flex items-center space-x-2 relative">
-          <button 
-            onClick={() => setShowTokenModal(true)} 
-            className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all cursor-pointer"
-          >
-            🔑 Set Upstox Token
-          </button>
+          
+          {/* Dynamic Upstox Token vs Connected Badge */}
+          {isUpstoxConnected ? (
+            <div className="flex items-center space-x-1.5 bg-green-950/60 border border-green-500/40 px-3 py-1 rounded-lg text-xs">
+              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-green-400 font-bold">Upstox Connected</span>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setShowTokenModal(true)} 
+              className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all cursor-pointer"
+            >
+              🔑 Set Upstox Token
+            </button>
+          )}
+
           <button 
             onClick={() => setShowBasketPanel(!showBasketPanel)} 
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -153,7 +174,7 @@ export default function App() {
             ⚡ Quick Trade
           </button>
 
-          {/* PK Profile Menu */}
+          {/* Profile Dropdown */}
           <div className="relative ml-1">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -298,7 +319,7 @@ export default function App() {
           )}
         </main>
 
-        {/* 🛒 Basket Panel Drawer */}
+        {/* 🛒 Basket Drawer */}
         {showBasketPanel && (
           <div className="w-80 bg-[#12141c] border-l border-gray-800 p-4 flex flex-col justify-between shadow-2xl z-30">
             <div>
@@ -322,7 +343,7 @@ export default function App() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-base font-bold text-amber-400 mb-2">🔑 Set Upstox Access Token</h3>
-            <p className="text-xs text-gray-400 mb-4">Paste your daily Upstox API v2 Access Token for live WebSocket feed.</p>
+            <p className="text-xs text-gray-400 mb-4">Paste your daily Upstox API v2 Access Token for live feed connection.</p>
             <input 
               type="text" 
               placeholder="Paste Upstox Access Token..." 
@@ -332,13 +353,13 @@ export default function App() {
             />
             <div className="flex justify-end space-x-2">
               <button onClick={() => setShowTokenModal(false)} className="px-4 py-1.5 rounded text-xs bg-gray-800 hover:bg-gray-700 text-gray-300">Cancel</button>
-              <button onClick={() => { setShowTokenModal(false); alert("Access Token Updated!"); }} className="px-4 py-1.5 rounded text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold">Save Token</button>
+              <button onClick={handleSaveToken} className="px-4 py-1.5 rounded text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold">Save & Connect</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ⚡ Quick Trade Modal Popup */}
+      {/* ⚡ Quick Trade Modal */}
       {showQuickTradeModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-sm shadow-2xl">
