@@ -7,6 +7,9 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
 
+  // Option Chain Selected Index State
+  const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('NIFTY');
+
   // Connection & Interactive States
   const [isUpstoxConnected, setIsUpstoxConnected] = useState(false);
   const [showTokenModal, setShowTokenModal] = useState(false);
@@ -32,6 +35,8 @@ export default function App() {
     { name: 'HDFCBANK', price: 1466.97, change: '+0.24 (+0.00%)', isUp: true },
     { name: 'TATAMOTORS', price: 989.40, change: '+0.64 (+0.01%)', isUp: true },
   ];
+
+  const optionSymbols = ['NIFTY', 'SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'CRUDEOIL', 'NATURALGAS', 'GOLD', 'SILVER'];
 
   const currentStockObj = stocks.find(s => s.name === selectedStock) || stocks[0];
 
@@ -287,13 +292,33 @@ export default function App() {
             </div>
           )}
 
-          {/* Option Chain View with Buy [B] & Sell [S] triggers */}
+          {/* Option Chain View with All Indices & Commodities Selectors */}
           {activeTab === 'optionChain' && (
             <div className="bg-[#12141c] rounded-xl border border-gray-800 p-5 shadow-lg">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
-                <h2 className="text-lg font-bold text-purple-400">📊 Option Chain Analytics [{selectedStock}]</h2>
+              
+              {/* Top Option Chain Navigation Bar matching Upstox */}
+              <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-4 border-b border-gray-800 scrollbar-none">
+                <span className="text-xs font-bold text-gray-400 mr-2">Option Chain</span>
+                {optionSymbols.map((sym) => (
+                  <button
+                    key={sym}
+                    onClick={() => setSelectedOptionSymbol(sym)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      selectedOptionSymbol === sym 
+                        ? 'bg-purple-600 text-white shadow-md' 
+                        : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800'
+                    }`}
+                  >
+                    {sym}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-sm font-bold text-purple-400">📊 Option Chain for {selectedOptionSymbol}</h2>
                 <span className="text-xs text-gray-400">Expiry: 13-Nov-2026 | Click [B] to Buy or [S] to Sell</span>
               </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-gray-300 border-collapse">
                   <thead>
@@ -311,13 +336,13 @@ export default function App() {
                       <td className="p-2.5 text-blue-400">1,25,400</td>
                       <td className="p-2.5 text-green-400">+12.4%</td>
                       <td className="p-2.5 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedStock} 24640 CE`, 305.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
-                        <button onClick={() => executeTrade(`${selectedStock} 24640 CE`, 305.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 CE`, 305.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 CE`, 305.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
                       </td>
                       <td className="p-2.5 text-center font-bold text-amber-400 bg-gray-900/50">24640</td>
                       <td className="p-2.5 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedStock} 24640 PE`, 45.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
-                        <button onClick={() => executeTrade(`${selectedStock} 24640 PE`, 45.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 PE`, 45.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 PE`, 45.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
                       </td>
                       <td className="p-2.5 text-red-400">98,400</td>
                     </tr>
@@ -325,13 +350,13 @@ export default function App() {
                       <td className="p-2.5 text-blue-400">1,87,900</td>
                       <td className="p-2.5 text-green-400 font-bold">+17.4%</td>
                       <td className="p-2.5 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedStock} 24890 ATM CE`, 55.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
-                        <button onClick={() => executeTrade(`${selectedStock} 24890 ATM CE`, 55.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM CE`, 55.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM CE`, 55.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
                       </td>
                       <td className="p-2.5 text-center font-bold text-white bg-purple-900/40">24890 [ATM]</td>
                       <td className="p-2.5 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedStock} 24890 ATM PE`, 50.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
-                        <button onClick={() => executeTrade(`${selectedStock} 24890 ATM PE`, 50.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM PE`, 50.00, 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">B</button>
+                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM PE`, 50.00, 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">S</button>
                       </td>
                       <td className="p-2.5 text-red-400">1,50,900</td>
                     </tr>
@@ -341,7 +366,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Portfolio View with Positions & Holdings */}
+          {/* Portfolio View */}
           {activeTab === 'portfolio' && (
             <div className="bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg flex-1 flex flex-col">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -379,7 +404,7 @@ export default function App() {
                 <div className="flex-1">
                   {positions.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 text-xs border border-dashed border-gray-800 rounded-lg">
-                      No open positions available. Place trade from Option Chain or Watchlist.[cite: 7]
+                      No open positions available. Place trade from Option Chain or Watchlist.
                     </div>
                   ) : (
                     <table className="w-full text-left text-xs text-gray-300">
