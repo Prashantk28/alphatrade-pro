@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('chart');
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
 
   const stocks = [
@@ -14,16 +15,23 @@ export default function App() {
     { name: 'TATAMOTORS', price: '₹989.4', change: '+0.64 (+0.01%)', isUp: true },
   ];
 
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to Logout from AlphaTrade Pro?")) {
+      alert("Logged out successfully!");
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative">
       
-      {/* ⚠️ Paper Trading Warning Banner (सर्वात वर पिवळी पट्टी) */}
+      {/* ⚠️ Paper Trading Warning Banner */}
       <div className="bg-amber-500/25 border-b border-amber-500/50 px-4 py-2 flex items-center justify-center space-x-2 text-amber-300 text-xs md:text-sm font-bold tracking-wide shadow-md z-50">
         <span>⚠️</span>
         <span>Paper Trading (Virtual Funds Only) — No Real Money Involved</span>
       </div>
 
-      {/* Header matching original layout */}
+      {/* Header */}
       <header className="bg-[#12141c] border-b border-gray-800 px-4 py-2 flex items-center justify-between sticky top-0 z-40 shadow-lg">
         <div className="flex items-center space-x-3">
           <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-lg text-sm tracking-wide shadow-md">
@@ -61,8 +69,8 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Right Side: Original Action Buttons + Logout */}
-        <div className="flex items-center space-x-2">
+        {/* Right Side: Action Buttons & PK Profile Dropdown */}
+        <div className="flex items-center space-x-2 relative">
           <button onClick={() => alert("Set Upstox Token clicked")} className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all">
             🔑 Set Upstox Token
           </button>
@@ -73,24 +81,60 @@ export default function App() {
             ⚡ Quick Trade
           </button>
 
-          {/* PK Profile & Direct Logout Button */}
-          <button
-            onClick={() => {
-              if (window.confirm("Are you sure you want to Logout?")) {
-                alert("Logged out successfully!");
-                window.location.reload();
-              }
-            }}
-            className="bg-red-600 hover:bg-red-500 text-white font-bold px-2.5 py-1 rounded-lg text-xs tracking-wide shadow-md flex items-center space-x-1 cursor-pointer transition-all ml-1"
-            title="Click to Logout"
-          >
-            <span>PK</span>
-            <span className="text-[10px]">🚪</span>
-          </button>
+          {/* PK Profile Button & Upstox Style Dropdown */}
+          <div className="relative ml-1">
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all"
+            >
+              PK
+            </button>
+
+            {showProfileMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-[#181b25] border border-gray-800 rounded-xl shadow-2xl py-2 z-50 font-sans text-xs">
+                <div className="px-4 py-2.5 border-b border-gray-800">
+                  <p className="text-gray-200 font-bold">My Account | User ID 122758</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">pkamble.kvic@hokvic.gov.in</p>
+                </div>
+                <div className="py-1">
+                  <button onClick={() => { setShowProfileMenu(false); alert("Activate F&O, MCX clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
+                    <span>📊 Activate F&O, MCX</span>
+                  </button>
+                  <button onClick={() => { setShowProfileMenu(false); alert("Refer & Earn clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
+                    <span>🎁 Refer & Earn</span>
+                  </button>
+                  <button onClick={() => { setShowProfileMenu(false); alert("My Reports clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+                    <span>📈 My Reports</span>
+                    <span className="text-gray-500">&gt;</span>
+                  </button>
+                  <button onClick={() => { setShowProfileMenu(false); alert("Settings clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+                    <span>⚙️ Settings</span>
+                    <span className="text-gray-500">&gt;</span>
+                  </button>
+                  <button onClick={() => { setShowProfileMenu(false); alert("Help clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+                    <span>❓ Help</span>
+                    <span className="text-gray-500">&gt;</span>
+                  </button>
+                </div>
+                <div className="border-t border-gray-800 px-4 py-2 flex items-center justify-between">
+                  <span className="text-gray-300 font-medium">Plus Plan</span>
+                  <span className="bg-purple-900/60 text-purple-300 text-[10px] px-2 py-0.5 rounded font-bold border border-purple-700/50">Enabled</span>
+                </div>
+                <div className="border-t border-gray-800 pt-1 mt-1">
+                  <button
+                    onClick={() => { setShowProfileMenu(false); handleLogout(); }}
+                    className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold transition-all"
+                  >
+                    <span>🚪 Logout</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Main Content Layout with Watchlist & Chart Workspace */}
+      {/* Main Content Layout with Watchlist */}
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Watchlist Sidebar */}
