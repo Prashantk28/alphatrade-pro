@@ -2,16 +2,6 @@ import React, { useState } from 'react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('chart');
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-
-  // लॉगआउट फंक्शन
-  const handleLogout = () => {
-    const confirmLogout = window.confirm("Are you sure you want to Logout from AlphaTrade Pro?");
-    if (confirmLogout) {
-      alert("Logged out successfully!");
-      window.location.reload();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative">
@@ -57,59 +47,25 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Right Side: Upstox Connected + PK Profile Dropdown Menu */}
-        <div className="flex items-center space-x-3 relative">
+        {/* Right Side: Logout Button */}
+        <div className="flex items-center space-x-3">
           <div className="hidden md:flex items-center space-x-1.5 bg-gray-900 px-3 py-1.5 rounded-full border border-gray-800 text-xs">
             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
             <span className="text-gray-300 font-medium">Upstox Connected</span>
           </div>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all"
-            >
-              PK
-            </button>
-
-            {/* Upstox Style Dropdown Menu */}
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-[#181b25] border border-gray-800 rounded-xl shadow-2xl py-2 z-50 font-sans">
-                <div className="px-4 py-2.5 border-b border-gray-800">
-                  <p className="text-xs text-gray-200 font-bold">My Account | User ID 122758</p>
-                  <p className="text-[10px] text-gray-400">pkamble.kvic@hokvic.gov.in</p>
-                </div>
-                <div className="py-1">
-                  <button 
-                    onClick={() => alert("Activate F&O, MCX clicked")}
-                    className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center space-x-2"
-                  >
-                    <span>📊 Activate F&O, MCX</span>
-                  </button>
-                  <button 
-                    onClick={() => alert("Reports clicked")}
-                    className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center space-x-2"
-                  >
-                    <span>📈 My Reports</span>
-                  </button>
-                  <button 
-                    onClick={() => alert("Settings clicked")}
-                    className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center space-x-2"
-                  >
-                    <span>⚙️ Settings</span>
-                  </button>
-                </div>
-                <div className="border-t border-gray-800 pt-1 mt-1">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold transition-all"
-                  >
-                    <span>🚪 Logout</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => {
+              if (window.confirm("Are you sure you want to Logout?")) {
+                alert("Logged out successfully!");
+                window.location.reload();
+              }
+            }}
+            className="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs tracking-wide shadow-md flex items-center space-x-1 cursor-pointer transition-all"
+          >
+            <span>PK</span>
+            <span>🚪 Logout</span>
+          </button>
         </div>
       </header>
 
