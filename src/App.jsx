@@ -70,13 +70,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans">
-      {/* Header */}
+      {/* Header Component */}
       <Header activeTab={activeTab} setActiveTab={setActiveTab} isConnected={isConnected} />
 
-      {/* ⚠️ Paper Trading Warning Banner */}
-      <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 flex items-center justify-center space-x-2 text-amber-400 text-xs font-medium">
+      {/* ⚠️ Paper Trading Warning Banner (ठळक आणि स्पष्ट पिवळी पट्टी) */}
+      <div className="bg-amber-500/20 border-b border-amber-500/40 px-4 py-2.5 flex items-center justify-center space-x-2 text-amber-300 text-xs font-bold tracking-wide shadow-md z-40">
         <span>⚠️</span>
-        <span>Paper Trading Mode Active — Virtual Funds Only (No Real Money Involved)</span>
+        <span>Paper Trading (Virtual Funds Only) — No Real Money Involved</span>
       </div>
 
       <main className="flex-1 p-4 overflow-y-auto">
