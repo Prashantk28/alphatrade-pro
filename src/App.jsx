@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
+import AdvancedChart from './components/AdvancedChart';
 
 export default function App() {
-  // सुरुवातीला Default Login Screen दिसण्यासाठी initialState false ठेवली आहे
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('chart');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
-  
+
+  // Interactive Modals and Panels State
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [showBasketPanel, setShowBasketPanel] = useState(false);
+  const [showQuickTradeModal, setShowQuickTradeModal] = useState(false);
+  const [upstoxToken, setUpstoxToken] = useState('');
+
   const [email, setEmail] = useState('pkamble.kvic@hokvic.gov.in');
   const [password, setPassword] = useState('••••••••');
 
   const stocks = [
-    { name: 'NIFTY 50', price: '₹24,893.03', change: '+1.26 (+0.01%)', isUp: true },
-    { name: 'BANKNIFTY', price: '₹47,595.12', change: '-0.81 (-0.01%)', isUp: false },
-    { name: 'RELIANCE', price: '₹2,973.1', change: '+0.02 (+0.00%)', isUp: true },
-    { name: 'TCS', price: '₹3,942.49', change: '+0.41 (+0.00%)', isUp: true },
-    { name: 'INFY', price: '₹1,624.84', change: '+0.03 (+0.00%)', isUp: true },
-    { name: 'HDFCBANK', price: '₹1,466.97', change: '+0.24 (+0.00%)', isUp: true },
-    { name: 'TATAMOTORS', price: '₹989.4', change: '+0.64 (+0.01%)', isUp: true },
+    { name: 'NIFTY 50', price: 24893.03, change: '+1.26 (+0.01%)', isUp: true },
+    { name: 'BANKNIFTY', price: 47595.12, change: '-0.81 (-0.01%)', isUp: false },
+    { name: 'RELIANCE', price: 2973.10, change: '+0.02 (+0.00%)', isUp: true },
+    { name: 'TCS', price: 3942.49, change: '+0.41 (+0.00%)', isUp: true },
+    { name: 'INFY', price: 1624.84, change: '+0.03 (+0.00%)', isUp: true },
+    { name: 'HDFCBANK', price: 1466.97, change: '+0.24 (+0.00%)', isUp: true },
+    { name: 'TATAMOTORS', price: 989.40, change: '+0.64 (+0.01%)', isUp: true },
   ];
 
-  // १. युजर लॉगिन होण्यापूर्वी दिसणारा Login Screen
+  const currentStockObj = stocks.find(s => s.name === selectedStock) || stocks[0];
+
+  // 1. Initial Login Screen
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -54,7 +62,7 @@ export default function App() {
               />
             </div>
             <div className="text-right">
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to registered email"); }} className="text-[11px] text-purple-400 hover:underline">Forgot Password?</a>
+              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset instructions sent."); }} className="text-[11px] text-purple-400 hover:underline">Forgot Password?</a>
             </div>
 
             <button 
@@ -66,24 +74,24 @@ export default function App() {
           </form>
 
           <p className="text-gray-400 text-xs mt-6">
-            Don't have an account? <span className="text-purple-400 cursor-pointer font-semibold" onClick={() => alert("Registration is currently restricted to invited traders.")}>Sign Up</span>
+            Don't have an account? <span className="text-purple-400 cursor-pointer font-semibold" onClick={() => alert("Registration is currently restricted.")}>Sign Up</span>
           </p>
         </div>
       </div>
     );
   }
 
-  // २. यशस्वी लॉगिन झाल्यानंतर दिसणारा Main Dashboard Screen
+  // 2. Main Dashboard Layout
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative">
       
-      {/* ⚠️ Paper Trading Warning Banner */}
+      {/* ⚠️ Paper Trading Banner */}
       <div className="bg-amber-500/25 border-b border-amber-500/50 px-4 py-2 flex items-center justify-center space-x-2 text-amber-300 text-xs md:text-sm font-bold tracking-wide shadow-md z-50">
         <span>⚠️</span>
         <span>Paper Trading (Virtual Funds Only) — No Real Money Involved</span>
       </div>
 
-      {/* Header */}
+      {/* Top Header */}
       <header className="bg-[#12141c] border-b border-gray-800 px-4 py-2 flex items-center justify-between sticky top-0 z-40 shadow-lg">
         <div className="flex items-center space-x-3">
           <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-lg text-sm tracking-wide shadow-md">
@@ -94,10 +102,11 @@ export default function App() {
           </div>
         </div>
 
+        {/* Navigation Tabs (Chart, Option Chain, Portfolio) */}
         <nav className="flex items-center space-x-1">
           <button
             onClick={() => setActiveTab('chart')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'chart' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
           >
@@ -105,7 +114,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setActiveTab('optionChain')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'optionChain' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
           >
@@ -113,7 +122,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setActiveTab('portfolio')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
           >
@@ -121,19 +130,30 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Right Side: Action Buttons & PK Profile Dropdown */}
+        {/* Action Buttons & Profile Dropdown */}
         <div className="flex items-center space-x-2 relative">
-          <button onClick={() => alert("Set Upstox Token clicked")} className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all">
+          <button 
+            onClick={() => setShowTokenModal(true)} 
+            className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all cursor-pointer"
+          >
             🔑 Set Upstox Token
           </button>
-          <button onClick={() => alert("Basket clicked")} className="bg-gray-800 text-gray-200 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-gray-700 transition-all">
+          <button 
+            onClick={() => setShowBasketPanel(!showBasketPanel)} 
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              showBasketPanel ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'
+            }`}
+          >
             🛒 Basket
           </button>
-          <button onClick={() => alert("Quick Trade clicked")} className="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-blue-500 transition-all">
+          <button 
+            onClick={() => setShowQuickTradeModal(true)} 
+            className="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-blue-500 transition-all cursor-pointer"
+          >
             ⚡ Quick Trade
           </button>
 
-          {/* PK Profile Button & Upstox Style Dropdown */}
+          {/* PK Profile Menu */}
           <div className="relative ml-1">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -149,22 +169,18 @@ export default function App() {
                   <p className="text-[10px] text-gray-400 mt-0.5">pkamble.kvic@hokvic.gov.in</p>
                 </div>
                 <div className="py-1">
-                  <button onClick={() => { setShowProfileMenu(false); alert("Activate F&O, MCX clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
+                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
                     <span>📊 Activate F&O, MCX</span>
                   </button>
-                  <button onClick={() => { setShowProfileMenu(false); alert("Refer & Earn clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
+                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
                     <span>🎁 Refer & Earn</span>
                   </button>
-                  <button onClick={() => { setShowProfileMenu(false); alert("My Reports clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
                     <span>📈 My Reports</span>
                     <span className="text-gray-500">&gt;</span>
                   </button>
-                  <button onClick={() => { setShowProfileMenu(false); alert("Settings clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
+                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
                     <span>⚙️ Settings</span>
-                    <span className="text-gray-500">&gt;</span>
-                  </button>
-                  <button onClick={() => { setShowProfileMenu(false); alert("Help clicked"); }} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
-                    <span>❓ Help</span>
                     <span className="text-gray-500">&gt;</span>
                   </button>
                 </div>
@@ -186,10 +202,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content Layout with Watchlist */}
+      {/* Main Workspace */}
       <div className="flex-1 flex overflow-hidden">
         
-        {/* Left Watchlist Sidebar */}
+        {/* Watchlist Sidebar */}
         <aside className="w-72 bg-[#12141c] border-r border-gray-800 flex flex-col hidden md:flex">
           <div className="p-3 border-b border-gray-800 flex items-center justify-between text-xs text-gray-400 font-semibold">
             <span>Watchlist (1 / 50)</span>
@@ -207,7 +223,7 @@ export default function App() {
                   <p className="text-[10px] text-gray-500">NSE</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-gray-200">{stock.price}</p>
+                  <p className="text-xs font-semibold text-gray-200">₹{stock.price.toFixed(2)}</p>
                   <p className={`text-[10px] font-medium ${stock.isUp ? 'text-green-400' : 'text-red-400'}`}>
                     {stock.change}
                   </p>
@@ -217,52 +233,141 @@ export default function App() {
           </div>
         </aside>
 
-        {/* Workspace */}
-        <main className="flex-1 p-4 overflow-y-auto bg-[#0b0e14]">
+        {/* Dynamic Main View */}
+        <main className="flex-1 p-4 overflow-y-auto bg-[#0b0e14] relative flex flex-col">
           {activeTab === 'chart' && (
-            <div className="flex flex-col h-full bg-[#12141c] rounded-xl border border-gray-800 p-4 shadow-lg">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-800">
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-lg font-bold text-white">{selectedStock}</h2>
-                  <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded font-medium">LIVE TBT</span>
-                </div>
-                <div className="flex items-center space-x-2 text-xs text-gray-400">
-                  <span className="bg-gray-900 px-2.5 py-1 rounded border border-gray-800">1m</span>
-                  <span className="bg-gray-900 px-2.5 py-1 rounded border border-gray-800">5m</span>
-                  <span className="bg-purple-600 text-white px-2.5 py-1 rounded font-medium">15m</span>
-                  <span className="bg-gray-900 px-2.5 py-1 rounded border border-gray-800">1h</span>
-                </div>
-              </div>
-
-              {/* Chart View */}
-              <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-800 rounded-lg p-6 bg-[#0e1117] min-h-[50vh]">
-                <div className="text-center">
-                  <span className="text-4xl mb-2 block">📈</span>
-                  <h3 className="text-lg font-bold text-purple-400">Advanced Candlestick Chart View</h3>
-                  <p className="text-gray-400 text-xs mt-1">Real-time market feed connected for {selectedStock}</p>
-                </div>
-              </div>
+            <div className="flex-1 flex flex-col h-full min-h-[550px]">
+              <AdvancedChart symbol={currentStockObj.name} ltp={currentStockObj.price} />
             </div>
           )}
 
           {activeTab === 'optionChain' && (
             <div className="bg-[#12141c] rounded-xl border border-gray-800 p-5 shadow-lg">
               <h2 className="text-lg font-bold mb-3 text-purple-400">📊 Option Chain Analytics</h2>
-              <p className="text-gray-300 text-xs mb-4">Live Call (CE) & Put (PE) strike prices.</p>
+              <p className="text-gray-300 text-xs mb-4">Real-time Call (CE) & Put (PE) strike prices for {selectedStock}.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-300 border-collapse">
+                  <thead>
+                    <tr className="bg-gray-900 border-b border-gray-800 text-gray-400">
+                      <th className="p-2.5">CALLS OI</th>
+                      <th className="p-2.5">CHG %</th>
+                      <th className="p-2.5 text-center">STRIKE PRICE</th>
+                      <th className="p-2.5">PUTS OI</th>
+                      <th className="p-2.5">CHG %</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    <tr className="hover:bg-gray-800/40">
+                      <td className="p-2.5 text-blue-400">1,25,400</td>
+                      <td className="p-2.5 text-green-400">+12.4%</td>
+                      <td className="p-2.5 text-center font-bold text-amber-400 bg-gray-900/50">24640</td>
+                      <td className="p-2.5 text-red-400">98,400</td>
+                      <td className="p-2.5 text-red-400">-8.2%</td>
+                    </tr>
+                    <tr className="hover:bg-gray-800/40">
+                      <td className="p-2.5 text-blue-400">1,87,900</td>
+                      <td className="p-2.5 text-green-400 font-bold">+17.4%</td>
+                      <td className="p-2.5 text-center font-bold text-white bg-purple-900/40">24890 [ATM]</td>
+                      <td className="p-2.5 text-red-400">1,50,900</td>
+                      <td className="p-2.5 text-red-400">-13.2%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
           {activeTab === 'portfolio' && (
             <div className="bg-[#12141c] rounded-xl border border-gray-800 p-6 shadow-lg">
               <h2 className="text-xl font-bold mb-4 text-purple-400">💼 Portfolio & Virtual Funds</h2>
-              <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 w-64">
-                <span className="text-gray-400 text-xs">Available Virtual Cash</span>
-                <h3 className="text-2xl font-bold text-green-400">₹10,00,000.00</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800">
+                  <span className="text-gray-400 text-xs">Available Virtual Cash</span>
+                  <h3 className="text-2xl font-bold text-green-400 mt-1">₹10,00,000.00</h3>
+                </div>
+                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800">
+                  <span className="text-gray-400 text-xs">Total P&L</span>
+                  <h3 className="text-2xl font-bold text-green-400 mt-1">+₹14,580.00</h3>
+                </div>
+                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800">
+                  <span className="text-gray-400 text-xs">Active Positions</span>
+                  <h3 className="text-2xl font-bold text-blue-400 mt-1">3 Lots</h3>
+                </div>
               </div>
             </div>
           )}
         </main>
+
+        {/* 🛒 Basket Panel Drawer */}
+        {showBasketPanel && (
+          <div className="w-80 bg-[#12141c] border-l border-gray-800 p-4 flex flex-col justify-between shadow-2xl z-30">
+            <div>
+              <div className="flex justify-between items-center pb-3 border-b border-gray-800">
+                <h3 className="font-bold text-sm text-purple-400">🛒 Order Basket</h3>
+                <button onClick={() => setShowBasketPanel(false)} className="text-gray-400 hover:text-white text-xs font-bold">✕</button>
+              </div>
+              <div className="mt-4 text-xs text-gray-400 text-center py-8 border border-dashed border-gray-800 rounded-lg">
+                No active orders in basket.
+              </div>
+            </div>
+            <button className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded text-xs">
+              Execute Basket Orders
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* 🔑 Upstox Access Token Modal */}
+      {showTokenModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-base font-bold text-amber-400 mb-2">🔑 Set Upstox Access Token</h3>
+            <p className="text-xs text-gray-400 mb-4">Paste your daily Upstox API v2 Access Token for live WebSocket feed.</p>
+            <input 
+              type="text" 
+              placeholder="Paste Upstox Access Token..." 
+              value={upstoxToken}
+              onChange={(e) => setUpstoxToken(e.target.value)}
+              className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg p-2.5 text-xs text-gray-200 mb-4 focus:outline-none focus:border-purple-600"
+            />
+            <div className="flex justify-end space-x-2">
+              <button onClick={() => setShowTokenModal(false)} className="px-4 py-1.5 rounded text-xs bg-gray-800 hover:bg-gray-700 text-gray-300">Cancel</button>
+              <button onClick={() => { setShowTokenModal(false); alert("Access Token Updated!"); }} className="px-4 py-1.5 rounded text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold">Save Token</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ⚡ Quick Trade Modal Popup */}
+      {showQuickTradeModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+              <h3 className="text-sm font-bold text-blue-400">⚡ Quick Order Execution</h3>
+              <button onClick={() => setShowQuickTradeModal(false)} className="text-gray-400 hover:text-white text-xs font-bold">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between text-gray-300">
+                <span>Symbol:</span>
+                <span className="font-bold text-white">{selectedStock}</span>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span>LTP:</span>
+                <span className="font-bold text-green-400">₹{currentStockObj.price.toFixed(2)}</span>
+              </div>
+              <div>
+                <label className="block text-gray-400 mb-1">Quantity</label>
+                <input type="number" defaultValue={50} className="w-full bg-[#0b0e14] border border-gray-800 rounded p-2 text-white" />
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button onClick={() => { setShowQuickTradeModal(false); alert("BUY Order Executed!"); }} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded text-xs">BUY</button>
+                <button onClick={() => { setShowQuickTradeModal(false); alert("SELL Order Executed!"); }} className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded text-xs">SELL</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
