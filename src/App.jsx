@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiMaximize2, FiSettings, FiBarChart2, FiTrendingUp, FiSliders } from 'react-icons/fi';
+import { FiMaximize2, FiSettings } from 'react-icons/fi';
 
 const stockBasePrices = {
   'NIFTY 50': 24891.95,
@@ -11,7 +11,7 @@ const stockBasePrices = {
   'TATAMOTORS': 988.11
 };
 
-// 📈 Advanced Chart Component Integrated Directly
+// 📈 Advanced Chart Component
 function AdvancedChart({ symbol, ltp }) {
   const [timeframe, setTimeframe] = useState('15m');
   const [candles, setCandles] = useState([]);
@@ -149,24 +149,16 @@ function AdvancedChart({ symbol, ltp }) {
           <span className="text-sm font-semibold text-green-400">₹{currentPrice.toLocaleString('en-IN')}</span>
           <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded font-bold animate-pulse">● LIVE TBT</span>
         </div>
-
         <div className="flex items-center space-x-2">
           <div className="flex bg-[#0F141C] p-1 rounded-lg border border-[#1E2638] text-xs space-x-1">
             {['1m', '5m', '15m', '1H', '1D'].map((tf) => (
-              <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
-                className={`px-2 py-0.5 rounded font-bold transition ${timeframe === tf ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              >
-                {tf}
-              </button>
+              <button key={tf} onClick={() => setTimeframe(tf)} className={`px-2 py-0.5 rounded font-bold transition ${timeframe === tf ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}>{tf}</button>
             ))}
           </div>
           <button className="p-1.5 bg-[#0F141C] border border-[#1E2638] rounded-lg text-gray-300 hover:text-white"><FiSettings size={14} /></button>
           <button className="p-1.5 bg-[#0F141C] border border-[#1E2638] rounded-lg text-gray-300 hover:text-white"><FiMaximize2 size={14} /></button>
         </div>
       </div>
-
       <div className="flex-1 bg-[#0F141C] rounded-xl mt-3 border border-[#1E2638] relative overflow-hidden flex flex-col">
         <canvas ref={canvasRef} width={1200} height={500} className="w-full h-full object-fill cursor-crosshair" />
         <div className="absolute bottom-2 left-3 right-20 flex justify-between items-center bg-[#131B2A]/90 px-3 py-1.5 rounded-lg border border-[#1E2638] text-[11px] backdrop-blur">
@@ -187,17 +179,15 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
 
-  // Option Chain Symbol State
+  // Option Chain Symbol State & Professional Greeks Rows
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('NIFTY');
 
-  // Connection & Interactive States
   const [isUpstoxConnected, setIsUpstoxConnected] = useState(false);
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [showBasketPanel, setShowBasketPanel] = useState(false);
   const [showQuickTradeModal, setShowQuickTradeModal] = useState(false);
   const [upstoxToken, setUpstoxToken] = useState('');
 
-  // Portfolio & Positions State
   const [portfolioSubTab, setPortfolioSubTab] = useState('positions');
   const [positions, setPositions] = useState([]);
   const [holdings, setHoldings] = useState([]);
@@ -218,6 +208,14 @@ export default function App() {
 
   const optionSymbols = ['NIFTY', 'SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'CRUDEOIL', 'NATURALGAS', 'GOLD', 'SILVER'];
   const currentStockObj = stocks.find(s => s.name === selectedStock) || stocks[0];
+
+  const optionRows = [
+    { strike: 80600, callVol: '55.27 L', callIV: '18.12', callVega: '26.99', callGamma: '0.0003', callTheta: '-81.73', callDelta: '0.65', callOIChg: '+36,620', callOILakhs: '1.56', callLTP: '840.00', putLTP: '383.40', putOILakhs: '2.31', putOIChg: '+44,620', putDelta: '-0.36', putTheta: '-96.83', putGamma: '0.0002', putVega: '27.55', putIV: '21.03', putVol: '93.17 L' },
+    { strike: 80700, callVol: '84.18 L', callIV: '18.56', callVega: '27.82', callGamma: '0.0003', callTheta: '-86.30', callDelta: '0.62', callOIChg: '+39,860', callOILakhs: '1.66', callLTP: '778.85', putLTP: '422.90', putOILakhs: '2.34', putOIChg: '+85,660', putDelta: '-0.38', putTheta: '-97.16', putGamma: '0.0003', putVega: '28.09', putIV: '20.70', putVol: '1.05 Cr' },
+    { strike: 80800, callVol: '1.15 Cr', callIV: '18.44', callVega: '28.40', callGamma: '0.0003', callTheta: '-87.52', callDelta: '0.59', callOIChg: '+1,46,920', callOILakhs: '2.38', callLTP: '718.80', putLTP: '464.30', putOILakhs: '2.48', putOIChg: '+1,04,520', putDelta: '-0.41', putTheta: '-98.46', putGamma: '0.0003', putVega: '28.57', putIV: '20.62', putVol: '1.16 Cr' },
+    { strike: 80900, callVol: '1.00 Cr', callIV: '18.82', callVega: '28.87', callGamma: '0.0003', callTheta: '-90.82', callDelta: '0.56', callOIChg: '+2,01,220', callOILakhs: '2.84', callLTP: '665.90', putLTP: '507.70', putOILakhs: '2.09', putOIChg: '+1,13,520', putDelta: '-0.43', putTheta: '-101.86', putGamma: '0.0003', putVega: '28.95', putIV: '21.06', putVol: '78.81 L' },
+    { strike: 81000, callVol: '2.16 Cr', callIV: '19.02', callVega: '29.16', callGamma: '0.0003', callTheta: '-92.70', callDelta: '0.53', callOIChg: '+5,30,540', callOILakhs: '9.90', callLTP: '622.65', putLTP: '550.25', putOILakhs: '7.66', putOIChg: '+4,39,340', putDelta: '-0.46', putTheta: '-101.35', putGamma: '0.0002', putVega: '29.18', putIV: '20.79', putVol: '1.47 Cr' },
+  ];
 
   const handleSaveToken = () => {
     if (upstoxToken.trim() !== '') {
@@ -249,7 +247,6 @@ export default function App() {
     }
   };
 
-  // 1. Initial Login Screen
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -260,49 +257,24 @@ export default function App() {
             </span>
             <p className="text-gray-400 text-xs mt-2">Login to your trading terminal</p>
           </div>
-
           <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
             <div>
               <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600"
-                required
-              />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600"
-                required
-              />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
             </div>
-            <div className="text-right">
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset instructions sent."); }} className="text-[11px] text-purple-400 hover:underline">Forgot Password?</a>
-            </div>
-
-            <button 
-              type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2"
-            >
+            <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
               Login to Terminal &rarr;
             </button>
           </form>
-
-          <p className="text-gray-400 text-xs mt-6">
-            Don't have an account? <span className="text-purple-400 cursor-pointer font-semibold" onClick={() => alert("Registration is restricted.")}>Sign Up</span>
-          </p>
         </div>
       </div>
     );
   }
 
-  // 2. Main Dashboard Layout
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative">
       
@@ -325,106 +297,36 @@ export default function App() {
 
         {/* Navigation Tabs */}
         <nav className="flex items-center space-x-1">
-          <button
-            onClick={() => setActiveTab('chart')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              activeTab === 'chart' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-          >
-            📊 Chart
-          </button>
-          <button
-            onClick={() => setActiveTab('optionChain')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              activeTab === 'optionChain' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-          >
-            Option Chain
-          </button>
-          <button
-            onClick={() => setActiveTab('portfolio')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-          >
-            Portfolio
-          </button>
+          <button onClick={() => setActiveTab('chart')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'chart' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>📊 Chart</button>
+          <button onClick={() => setActiveTab('optionChain')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'optionChain' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Option Chain</button>
+          <button onClick={() => setActiveTab('portfolio')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Portfolio</button>
         </nav>
 
         {/* Action Buttons & Status */}
         <div className="flex items-center space-x-2 relative">
-          
           {isUpstoxConnected ? (
             <div className="flex items-center space-x-1.5 bg-green-950/60 border border-green-500/40 px-3 py-1 rounded-lg text-xs">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
               <span className="text-green-400 font-bold">Upstox Connected</span>
             </div>
           ) : (
-            <button 
-              onClick={() => setShowTokenModal(true)} 
-              className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all cursor-pointer"
-            >
-              🔑 Set Upstox Token
-            </button>
+            <button onClick={() => setShowTokenModal(true)} className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all cursor-pointer">🔑 Set Upstox Token</button>
           )}
 
-          <button 
-            onClick={() => setShowBasketPanel(!showBasketPanel)} 
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              showBasketPanel ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'
-            }`}
-          >
-            🛒 Basket
-          </button>
-          <button 
-            onClick={() => setShowQuickTradeModal(true)} 
-            className="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-blue-500 transition-all cursor-pointer"
-          >
-            ⚡ Quick Trade
-          </button>
+          <button onClick={() => setShowBasketPanel(!showBasketPanel)} className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${showBasketPanel ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'}`}>🛒 Basket</button>
+          <button onClick={() => setShowQuickTradeModal(true)} className="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-blue-500 transition-all cursor-pointer">⚡ Quick Trade</button>
 
           {/* Profile Dropdown */}
           <div className="relative ml-1">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all"
-            >
-              PK
-            </button>
-
+            <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all">PK</button>
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-[#181b25] border border-gray-800 rounded-xl shadow-2xl py-2 z-50 font-sans text-xs">
                 <div className="px-4 py-2.5 border-b border-gray-800">
                   <p className="text-gray-200 font-bold">My Account | User ID 122758</p>
                   <p className="text-[10px] text-gray-400 mt-0.5">pkamble.kvic@hokvic.gov.in</p>
                 </div>
-                <div className="py-1">
-                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
-                    <span>📊 Activate F&O, MCX</span>
-                  </button>
-                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center space-x-2">
-                    <span>🎁 Refer & Earn</span>
-                  </button>
-                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
-                    <span>📈 My Reports</span>
-                    <span className="text-gray-500">&gt;</span>
-                  </button>
-                  <button onClick={() => setShowProfileMenu(false)} className="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 flex items-center justify-between">
-                    <span>⚙️ Settings</span>
-                    <span className="text-gray-500">&gt;</span>
-                  </button>
-                </div>
-                <div className="border-t border-gray-800 px-4 py-2 flex items-center justify-between">
-                  <span className="text-gray-300 font-medium">Plus Plan</span>
-                  <span className="bg-purple-900/60 text-purple-300 text-[10px] px-2 py-0.5 rounded font-bold border border-purple-700/50">Enabled</span>
-                </div>
                 <div className="border-t border-gray-800 pt-1 mt-1">
-                  <button
-                    onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); }}
-                    className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold transition-all cursor-pointer"
-                  >
-                    <span>🚪 Logout</span>
-                  </button>
+                  <button onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); }} className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold transition-all cursor-pointer"><span>🚪 Logout</span></button>
                 </div>
               </div>
             )}
@@ -443,20 +345,14 @@ export default function App() {
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-gray-800/50">
             {stocks.map((stock, idx) => (
-              <div 
-                key={idx}
-                onClick={() => setSelectedStock(stock.name)}
-                className={`p-3 hover:bg-gray-800/60 cursor-pointer transition-all flex items-center justify-between ${selectedStock === stock.name ? 'bg-gray-800/80 border-l-4 border-purple-600' : ''}`}
-              >
+              <div key={idx} onClick={() => setSelectedStock(stock.name)} className={`p-3 hover:bg-gray-800/60 cursor-pointer transition-all flex items-center justify-between ${selectedStock === stock.name ? 'bg-gray-800/80 border-l-4 border-purple-600' : ''}`}>
                 <div>
                   <p className="text-xs font-bold text-gray-200">{stock.name}</p>
                   <p className="text-[10px] text-gray-500">NSE</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-semibold text-gray-200">₹{stock.price.toFixed(2)}</p>
-                  <p className={`text-[10px] font-medium ${stock.isUp ? 'text-green-400' : 'text-red-400'}`}>
-                    {stock.change}
-                  </p>
+                  <p className={`text-[10px] font-medium ${stock.isUp ? 'text-green-400' : 'text-red-400'}`}>{stock.change}</p>
                 </div>
               </div>
             ))}
@@ -471,18 +367,18 @@ export default function App() {
             </div>
           )}
 
-          {/* Option Chain View with All Indices & Commodities Selectors */}
+          {/* 🌟 Professional Option Chain View with All Indices & Greeks Columns */}
           {activeTab === 'optionChain' && (
-            <div className="bg-[#12141c] rounded-xl border border-gray-800 p-5 shadow-lg flex-1 flex flex-col">
+            <div className="bg-[#12141c] rounded-xl border border-gray-800 p-4 shadow-2xl flex-1 flex flex-col font-sans text-gray-100 overflow-hidden">
               
-              {/* Top Option Chain Navigation Bar */}
-              <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-4 border-b border-gray-800">
-                <span className="text-xs font-bold text-gray-400 mr-2">Option Chain</span>
+              {/* Indices & Commodities Tabs */}
+              <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-3 border-b border-gray-800">
+                <span className="text-xs font-bold text-gray-400 mr-2">Option Chain:</span>
                 {optionSymbols.map((sym) => (
                   <button
                     key={sym}
                     onClick={() => setSelectedOptionSymbol(sym)}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       selectedOptionSymbol === sym 
                         ? 'bg-purple-600 text-white shadow-md' 
                         : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800'
@@ -493,55 +389,80 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-sm font-bold text-purple-400">📊 Option Chain Analytics for {selectedOptionSymbol}</h2>
-                <span className="text-xs text-gray-400">Expiry: 13-Nov-2026 | Click [B] to Buy or [S] to Sell</span>
+              <div className="flex justify-between items-center mb-3 text-xs">
+                <span className="font-bold text-purple-400">📊 Option Chain for {selectedOptionSymbol}</span>
+                <span className="text-gray-400">Click <strong className="text-blue-400">[B]</strong> to Buy or <strong className="text-red-400">[S]</strong> to Sell</span>
               </div>
 
-              <div className="overflow-x-auto flex-1">
-                <table className="w-full text-left text-xs text-gray-300 border-collapse">
+              {/* Professional Pro Greeks & Volume Table */}
+              <div className="overflow-x-auto flex-1 border border-gray-800 rounded-lg">
+                <table className="w-full text-left text-[11px] text-gray-300 border-collapse whitespace-nowrap font-mono">
                   <thead>
-                    <tr className="bg-gray-900 border-b border-gray-800 text-gray-400">
-                      <th className="p-3">CALLS OI</th>
-                      <th className="p-3">CHG %</th>
-                      <th className="p-3 text-center">CALL ACTION</th>
-                      <th className="p-3 text-center">STRIKE PRICE</th>
-                      <th className="p-3 text-center">PUT ACTION</th>
-                      <th className="p-3">PUTS OI</th>
-                      <th className="p-3">CHG %</th>
+                    <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-center uppercase tracking-wider text-[10px]">
+                      <th className="p-2.5 border-r border-gray-800/60 bg-blue-950/20" colSpan="10">Calls (CE)[cite: 7]</th>
+                      <th className="p-2.5 bg-gray-900 font-bold text-amber-400">Strike</th>
+                      <th className="p-2.5 border-l border-gray-800/60 bg-red-950/20" colSpan="10">Puts (PE)[cite: 7]</th>
+                    </tr>
+                    <tr className="bg-gray-900/90 text-gray-400 border-b border-gray-800 text-[10px]">
+                      <th className="p-2">Volume</th>
+                      <th className="p-2">IV[cite: 10]</th>
+                      <th className="p-2">Vega[cite: 10]</th>
+                      <th className="p-2">Gamma[cite: 10]</th>
+                      <th className="p-2">Theta[cite: 10]</th>
+                      <th className="p-2">Delta[cite: 10]</th>
+                      <th className="p-2">OI (chg)[cite: 10]</th>
+                      <th className="p-2">OI (Lakhs)[cite: 10]</th>
+                      <th className="p-2">LTP[cite: 10]</th>
+                      <th className="p-2 border-r border-gray-800">Action</th>
+                      <th className="p-2 text-center bg-gray-900 font-bold text-amber-400">PRICE</th>
+                      <th className="p-2 border-l border-gray-800">Action</th>
+                      <th className="p-2">LTP[cite: 10]</th>
+                      <th className="p-2">OI (Lakhs)[cite: 10]</th>
+                      <th className="p-2">OI (chg)[cite: 10]</th>
+                      <th className="p-2">Delta[cite: 10]</th>
+                      <th className="p-2">Theta[cite: 10]</th>
+                      <th className="p-2">Gamma[cite: 10]</th>
+                      <th className="p-2">Vega[cite: 10]</th>
+                      <th className="p-2">IV[cite: 10]</th>
+                      <th className="p-2">Volume[cite: 10]</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
-                    <tr className="hover:bg-gray-800/40">
-                      <td className="p-3 text-blue-400 font-mono">1,25,400</td>
-                      <td className="p-3 text-green-400 font-mono">+12.4%</td>
-                      <td className="p-3 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 CE`, 305.00, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">B</button>
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 CE`, 305.00, 'SELL', 'position')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">S</button>
-                      </td>
-                      <td className="p-3 text-center font-bold text-amber-400 bg-gray-900/50 font-mono">24640</td>
-                      <td className="p-3 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 PE`, 45.00, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">B</button>
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24640 PE`, 45.00, 'SELL', 'position')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">S</button>
-                      </td>
-                      <td className="p-3 text-red-400 font-mono">98,400</td>
-                      <td className="p-3 text-red-400 font-mono">-8.2%</td>
-                    </tr>
-                    <tr className="hover:bg-gray-800/40">
-                      <td className="p-3 text-blue-400 font-mono">1,87,900</td>
-                      <td className="p-3 text-green-400 font-bold font-mono">+17.4%</td>
-                      <td className="p-3 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM CE`, 55.00, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">B</button>
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM CE`, 55.00, 'SELL', 'position')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">S</button>
-                      </td>
-                      <td className="p-3 text-center font-bold text-white bg-purple-900/40 font-mono">24890 [ATM]</td>
-                      <td className="p-3 text-center space-x-1">
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM PE`, 50.00, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">B</button>
-                        <button onClick={() => executeTrade(`${selectedOptionSymbol} 24890 ATM PE`, 50.00, 'SELL', 'position')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">S</button>
-                      </td>
-                      <td className="p-3 text-red-400 font-mono">1,50,900</td>
-                      <td className="p-3 text-red-400 font-mono">-13.2%</td>
-                    </tr>
+                  <tbody className="divide-y divide-gray-800/60">
+                    {optionRows.map((r, idx) => (
+                      <tr key={idx} className="hover:bg-gray-800/45 transition-colors">
+                        <td className="p-2 text-gray-400">{r.callVol}</td>
+                        <td className="p-2 text-gray-400">{r.callIV}</td>
+                        <td className="p-2 text-gray-400">{r.callVega}</td>
+                        <td className="p-2 text-gray-400">{r.callGamma}</td>
+                        <td className="p-2 text-gray-400">{r.callTheta}</td>
+                        <td className="p-2 text-gray-400">{r.callDelta}</td>
+                        <td className="p-2 text-green-400">{r.callOIChg}</td>
+                        <td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
+                        <td className="p-2 text-amber-400 font-bold">₹{r.callLTP}</td>
+                        <td className="p-2 border-r border-gray-800 space-x-1 text-center">
+                          <button onClick={() => executeTrade(`${selectedOptionSymbol} ${r.strike} CE`, parseFloat(r.callLTP), 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">B</button>
+                          <button onClick={() => executeTrade(`${selectedOptionSymbol} ${r.strike} CE`, parseFloat(r.callLTP), 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">S</button>
+                        </td>
+
+                        <td className="p-2 text-center font-bold text-white bg-gray-900/80 border-x border-gray-800 text-xs">
+                          {r.strike}
+                        </td>
+
+                        <td className="p-2 border-l border-gray-800 space-x-1 text-center">
+                          <button onClick={() => executeTrade(`${selectedOptionSymbol} ${r.strike} PE`, parseFloat(r.putLTP), 'BUY')} className="bg-blue-600 hover:bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">B</button>
+                          <button onClick={() => executeTrade(`${selectedOptionSymbol} ${r.strike} PE`, parseFloat(r.putLTP), 'SELL')} className="bg-red-600 hover:bg-red-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">S</button>
+                        </td>
+                        <td className="p-2 text-amber-400 font-bold">₹{r.putLTP}</td>
+                        <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td>
+                        <td className="p-2 text-green-400">{r.putOIChg}</td>
+                        <td className="p-2 text-gray-400">{r.putDelta}</td>
+                        <td className="p-2 text-gray-400">{r.putTheta}</td>
+                        <td className="p-2 text-gray-400">{r.putGamma}</td>
+                        <td className="p-2 text-gray-400">{r.putVega}</td>
+                        <td className="p-2 text-gray-400">{r.putIV}</td>
+                        <td className="p-2 text-gray-400">{r.putVol}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -565,39 +486,19 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Portfolio Sub Tabs */}
               <div className="flex space-x-4 border-b border-gray-800 pb-3 mb-4 text-xs font-semibold">
-                <button 
-                  onClick={() => setPortfolioSubTab('positions')} 
-                  className={`pb-1 border-b-2 cursor-pointer ${portfolioSubTab === 'positions' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-400'}`}
-                >
-                  Positions ({positions.length})
-                </button>
-                <button 
-                  onClick={() => setPortfolioSubTab('holdings')} 
-                  className={`pb-1 border-b-2 cursor-pointer ${portfolioSubTab === 'holdings' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-400'}`}
-                >
-                  Holdings ({holdings.length})
-                </button>
+                <button onClick={() => setPortfolioSubTab('positions')} className={`pb-1 border-b-2 cursor-pointer ${portfolioSubTab === 'positions' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-400'}`}>Positions ({positions.length})</button>
+                <button onClick={() => setPortfolioSubTab('holdings')} className={`pb-1 border-b-2 cursor-pointer ${portfolioSubTab === 'holdings' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-400'}`}>Holdings ({holdings.length})</button>
               </div>
 
-              {/* Positions Table */}
               {portfolioSubTab === 'positions' && (
                 <div className="flex-1">
                   {positions.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500 text-xs border border-dashed border-gray-800 rounded-lg">
-                      No open positions available. Place trade from Option Chain or Watchlist[cite: 7].
-                    </div>
+                    <div className="text-center py-12 text-gray-500 text-xs border border-dashed border-gray-800 rounded-lg">No open positions available. Place trade from Option Chain[cite: 7].</div>
                   ) : (
                     <table className="w-full text-left text-xs text-gray-300">
                       <thead>
-                        <tr className="border-b border-gray-800 text-gray-400">
-                          <th className="py-2">Instrument</th>
-                          <th className="py-2">Type</th>
-                          <th className="py-2">Qty</th>
-                          <th className="py-2">Avg. Price</th>
-                          <th className="py-2">P&L</th>
-                        </tr>
+                        <tr className="border-b border-gray-800 text-gray-400"><th className="py-2">Instrument</th><th className="py-2">Type</th><th className="py-2">Qty</th><th className="py-2">Avg. Price</th><th className="py-2">P&L</th></tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800">
                         {positions.map(p => (
@@ -615,22 +516,14 @@ export default function App() {
                 </div>
               )}
 
-              {/* Holdings Table */}
               {portfolioSubTab === 'holdings' && (
                 <div className="flex-1">
                   {holdings.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500 text-xs border border-dashed border-gray-800 rounded-lg">
-                      No holdings available. Buy stocks from watchlist to see here.
-                    </div>
+                    <div className="text-center py-12 text-gray-500 text-xs border border-dashed border-gray-800 rounded-lg">No holdings available.</div>
                   ) : (
                     <table className="w-full text-left text-xs text-gray-300">
                       <thead>
-                        <tr className="border-b border-gray-800 text-gray-400">
-                          <th className="py-2">Stock Name</th>
-                          <th className="py-2">Qty</th>
-                          <th className="py-2">Buy Price</th>
-                          <th className="py-2">Current Value</th>
-                        </tr>
+                        <tr className="border-b border-gray-800 text-gray-400"><th className="py-2">Stock Name</th><th className="py-2">Qty</th><th className="py-2">Buy Price</th><th className="py-2">Current Value</th></tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800">
                         {holdings.map(h => (
@@ -650,7 +543,7 @@ export default function App() {
           )}
         </main>
 
-        {/* 🛒 Basket Drawer */}
+        {/* Basket Drawer */}
         {showBasketPanel && (
           <div className="w-80 bg-[#12141c] border-l border-gray-800 p-4 flex flex-col justify-between shadow-2xl z-30">
             <div>
@@ -658,30 +551,19 @@ export default function App() {
                 <h3 className="font-bold text-sm text-purple-400">🛒 Order Basket</h3>
                 <button onClick={() => setShowBasketPanel(false)} className="text-gray-400 hover:text-white text-xs font-bold">✕</button>
               </div>
-              <div className="mt-4 text-xs text-gray-400 text-center py-8 border border-dashed border-gray-800 rounded-lg">
-                No active orders in basket.
-              </div>
+              <div className="mt-4 text-xs text-gray-400 text-center py-8 border border-dashed border-gray-800 rounded-lg">No active orders in basket.</div>
             </div>
-            <button className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded text-xs">
-              Execute Basket Orders
-            </button>
+            <button className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded text-xs">Execute Basket Orders</button>
           </div>
         )}
       </div>
 
-      {/* 🔑 Upstox Access Token Modal */}
+      {/* Token Modal */}
       {showTokenModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-base font-bold text-amber-400 mb-2">🔑 Set Upstox Access Token</h3>
-            <p className="text-xs text-gray-400 mb-4">Paste your daily Upstox API v2 Access Token for live feed connection.</p>
-            <input 
-              type="text" 
-              placeholder="Paste Upstox Access Token..." 
-              value={upstoxToken}
-              onChange={(e) => setUpstoxToken(e.target.value)}
-              className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg p-2.5 text-xs text-gray-200 mb-4 focus:outline-none focus:border-purple-600"
-            />
+            <input type="text" placeholder="Paste Upstox Access Token..." value={upstoxToken} onChange={(e) => setUpstoxToken(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg p-2.5 text-xs text-gray-200 mb-4 focus:outline-none focus:border-purple-600" />
             <div className="flex justify-end space-x-2">
               <button onClick={() => setShowTokenModal(false)} className="px-4 py-1.5 rounded text-xs bg-gray-800 hover:bg-gray-700 text-gray-300">Cancel</button>
               <button onClick={handleSaveToken} className="px-4 py-1.5 rounded text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold">Save & Connect</button>
@@ -690,7 +572,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ⚡ Quick Trade Modal */}
+      {/* Quick Trade Modal */}
       {showQuickTradeModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-sm shadow-2xl">
@@ -699,20 +581,10 @@ export default function App() {
               <button onClick={() => setShowQuickTradeModal(false)} className="text-gray-400 hover:text-white text-xs font-bold">✕</button>
             </div>
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between text-gray-300">
-                <span>Symbol:</span>
-                <span className="font-bold text-white">{selectedStock}</span>
-              </div>
-              <div className="flex justify-between text-gray-300">
-                <span>LTP:</span>
-                <span className="font-bold text-green-400">₹{currentStockObj.price.toFixed(2)}</span>
-              </div>
-              <div>
-                <label className="block text-gray-400 mb-1">Quantity</label>
-                <input type="number" defaultValue={50} className="w-full bg-[#0b0e14] border border-gray-800 rounded p-2 text-white" />
-              </div>
+              <div className="flex justify-between text-gray-300"><span>Symbol:</span><span className="font-bold text-white">{selectedStock}</span></div>
+              <div className="flex justify-between text-gray-300"><span>LTP:</span><span className="font-bold text-green-400">₹{currentStockObj.price.toFixed(2)}</span></div>
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <button onClick={() => { executeTrade(selectedStock, currentStockObj.price, 'BUY', 'holding'); setShowQuickTradeModal(false); }} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded text-xs">BUY (Holding)</button>
+                <button onClick={() => { executeTrade(selectedStock, currentStockObj.price, 'BUY', 'holding'); setShowQuickTradeModal(false); }} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded text-xs">BUY</button>
                 <button onClick={() => { executeTrade(selectedStock, currentStockObj.price, 'SELL', 'holding'); setShowQuickTradeModal(false); }} className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded text-xs">SELL</button>
               </div>
             </div>
