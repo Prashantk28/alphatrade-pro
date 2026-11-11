@@ -1,194 +1,176 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FiMaximize2, FiSettings } from 'react-icons/fi';
-
-const stockBasePrices = {
-  'NIFTY 50': 24891.95,
-  'BANKNIFTY': 47595.71,
-  'RELIANCE': 2971.74,
-  'TCS': 3941.39,
-  'INFY': 1624.56,
-  'HDFCBANK': 1466.10,
-  'TATAMOTORS': 988.11
-};
+import React, { useEffect, useRef, useState } from 'react';
+import { createChart, CandlestickSeries } from 'lightweight-charts';
+import socketService from '../websocket';
 
 export default function AdvancedChart({ symbol, ltp }) {
-  const [timeframe, setTimeframe] = useState('15m');
-  const [candles, setCandles] = useState([]);
-  
-  const initialPrice = ltp || stockBasePrices[symbol] || 1500.00;
-  const [currentPrice, setCurrentPrice] = useState(initialPrice);
-  const canvasRef = useRef(null);
+  const chartContainerRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+  const candleSeriesRef = useRef(null);
+  const [currentPrice, setCurrentPrice] = useState(ltp || 24893.03);
+  const [indicator, setIndicator] = useState('EMA');
+
+  // जेव्हा सिम्बॉल किंवा त्याची LTP बदलेल, तेव्हा चार्टची प्राईस अपडेट करणे
+  useEffect(() => {
+    if (ltp) {
+      setCurrentPrice(ltp);
+    }
+  }, [ltp]);
 
   useEffect(() => {
-    const basePrice = stockBasePrices[symbol] || ltp || 1500.00;
-    setCurrentPrice(basePrice);
-    
-    const initialCandles = [];
-    let time = Date.now() - 50 * 15 * 60 * 1000;
-    let runningPrice = basePrice * 0.98;
+    if (!chartContainerRef.current) return;
 
-    for (let i = 0; i < 45; i++) {
-      const open = runningPrice + (Math.random() - 0.5) * (basePrice * 0.005);
-      const close = open + (Math.random() - 0.48) * (basePrice * 0.006);
-      const high = Math.max(open, close) + Math.random() * (basePrice * 0.003);
-      const low = Math.min(open, close) - Math.random() * (basePrice * 0.003);
-      initialCandles.push({ time, open, high, low, close });
-      runningPrice = close;
-      time += 15 * 60 * 1000;
-    }
-    if (initialCandles.length > 0) {
-      initialCandles[initialCandles.length - 1].close = basePrice;
-    }
-    setCandles(initialCandles);
-  }, [symbol]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPrice(prev => {
-        const fluctuationRange = prev * 0.0008;
-        const change = (Math.random() - 0.49) * fluctuationRange;
-        const newPrice = parseFloat((prev + change).toFixed(2));
-        
-        setCandles(prevCandles => {
-          if (prevCandles.length === 0) return prevCandles;
-          const last = { ...prevCandles[prevCandles.length - 1] };
-          last.close = newPrice;
-          last.high = Math.max(last.high, newPrice);
-          last.low = Math.min(last.low, newPrice);
-          return [...prevCandles.slice(0, prevCandles.length - 1), last];
-        });
-
-        return newPrice;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [symbol]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    ctx.clearRect(0, 0, width, height);
-    if (candles.length === 0) return;
-
-    ctx.fillStyle = '#0F141C';
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.strokeStyle = '#1E2638';
-    ctx.lineWidth = 1;
-
-    const prices = candles.flatMap(c => [c.high, c.low]);
-    const minPrice = Math.min(...prices) * 0.995;
-    const maxPrice = Math.max(...prices) * 1.005;
-    const priceRange = maxPrice - minPrice || 1;
-
-    const gridSteps = 6;
-    for (let i = 0; i <= gridSteps; i++) {
-      const y = (height / gridSteps) * i;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width - 70, y);
-      ctx.stroke();
-
-      const priceVal = maxPrice - (priceRange / gridSteps) * i;
-      ctx.fillStyle = '#6B7280';
-      ctx.font = '10px monospace';
-      ctx.fillText(priceVal.toFixed(2), width - 65, y + 4);
-    }
-
-    const candleWidth = Math.max(4, (width - 90) / candles.length - 4);
-    
-    candles.forEach((c, idx) => {
-      const x = 20 + idx * (candleWidth + 4);
-      const isGreen = c.close >= c.open;
-      const color = isGreen ? '#10B981' : '#EF4444';
-
-      const yHigh = height - ((c.high - minPrice) / priceRange) * height;
-      const yLow = height - ((c.low - minPrice) / priceRange) * height;
-      const yOpen = height - ((c.open - minPrice) / priceRange) * height;
-      const yClose = height - ((c.close - minPrice) / priceRange) * height;
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(x + candleWidth / 2, yHigh);
-      ctx.lineTo(x + candleWidth / 2, yLow);
-      ctx.stroke();
-
-      ctx.fillStyle = color;
-      const bodyY = Math.min(yOpen, yClose);
-      const bodyHeight = Math.max(2, Math.abs(yClose - yOpen));
-      ctx.fillRect(x, bodyY, candleWidth, bodyHeight);
+    // १. लाइटवेट चार्ट इन्स्टॉल करणे
+    const chart = createChart(chartContainerRef.current, {
+      width: chartContainerRef.current.clientWidth,
+      height: 480,
+      layout: {
+        background: { color: '#0f172a' },
+        textColor: '#cbd5e1',
+      },
+      grid: {
+        vertLines: { color: '#1e293b' },
+        horzLines: { color: '#1e293b' },
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+      },
     });
 
-    const currentY = height - ((currentPrice - minPrice) / priceRange) * height;
-    ctx.strokeStyle = '#3B82F6';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(0, currentY);
-    ctx.lineTo(width - 70, currentY);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    chartInstanceRef.current = chart;
 
-    ctx.fillStyle = '#3B82F6';
-    ctx.fillRect(width - 70, currentY - 10, 70, 20);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText(currentPrice.toFixed(2), width - 65, currentY + 4);
+    // २. कॅन्डल सिरीज जोडणे
+    let candleSeries;
+    const seriesOptions = {
+      upColor: '#22c55e',
+      downColor: '#ef4444',
+      borderVisible: false,
+      wickUpColor: '#22c55e',
+      wickDownColor: '#ef4444',
+    };
 
-  }, [candles, currentPrice]);
+    if (typeof chart.addCandlestickSeries === 'function') {
+      candleSeries = chart.addCandlestickSeries(seriesOptions);
+    } else if (typeof chart.addSeries === 'function' && CandlestickSeries) {
+      candleSeries = chart.addSeries(CandlestickSeries, seriesOptions);
+    } else {
+      candleSeries = chart.addCustomSeries(seriesOptions);
+    }
+
+    candleSeriesRef.current = candleSeries;
+
+    // ३. निवडलेल्या स्टॉकच्या खऱ्या LTP नुसार डेटा जनरेट करणे
+    const currentBasePrice = ltp || 24700;
+    const baseTimestamp = Math.floor(Date.now() / 1000) - (12 * 3600);
+    const initialData = [];
+    let baseP = currentBasePrice * 0.98; // थोड्या मागच्या प्राईसपासून सुरुवात
+
+    for (let i = 0; i < 30; i++) {
+      const time = baseTimestamp + (i * 1800);
+      const open = baseP;
+      const close = open + (Math.random() * (currentBasePrice * 0.01) - (currentBasePrice * 0.005));
+      const high = Math.max(open, close) + Math.random() * (currentBasePrice * 0.004);
+      const low = Math.min(open, close) - Math.random() * (currentBasePrice * 0.004);
+      
+      initialData.push({
+        time: time,
+        open: parseFloat(open.toFixed(2)),
+        high: parseFloat(high.toFixed(2)),
+        low: parseFloat(low.toFixed(2)),
+        close: parseFloat(close.toFixed(2)),
+      });
+      baseP = close;
+    }
+
+    // शेवटी शेवटची कॅन्डल सध्याच्या अचूक LTP वर सेट करणे
+    if (initialData.length > 0) {
+      initialData[initialData.length - 1].close = currentBasePrice;
+      initialData[initialData.length - 1].high = Math.max(initialData[initialData.length - 1].high, currentBasePrice);
+      initialData[initialData.length - 1].low = Math.min(initialData[initialData.length - 1].low, currentBasePrice);
+    }
+
+    if (candleSeries) {
+      candleSeries.setData(initialData);
+      chart.timeScale().fitContent();
+    }
+
+    // ४. WebSocket कनेक्ट करणे
+    socketService.connect('ws://localhost:5000');
+
+    const handleRealtimeUpdate = (data) => {
+      if (data && data.price && candleSeriesRef.current) {
+        setCurrentPrice(data.price);
+        const currentTime = Math.floor(Date.now() / 1000);
+        try {
+          candleSeriesRef.current.update({
+            time: currentTime,
+            open: data.price - 5,
+            high: data.price + 10,
+            low: data.price - 8,
+            close: data.price,
+          });
+        } catch (err) {
+          console.error("Chart update error:", err);
+        }
+      }
+    };
+
+    socketService.subscribe(handleRealtimeUpdate);
+
+    const handleResize = () => {
+      if (chartContainerRef.current && chartInstanceRef.current) {
+        chartInstanceRef.current.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      socketService.unsubscribe(handleRealtimeUpdate);
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.remove();
+      }
+    };
+  }, [symbol, ltp]);
 
   return (
-    <div className="flex-1 bg-[#131B2A] border border-[#1E2638] rounded-2xl p-4 flex flex-col h-full font-mono text-white select-none w-full">
-      <div className="flex justify-between items-center pb-3 border-b border-[#1E2638]">
-        <div className="flex items-center space-x-3">
-          <h2 className="text-base font-bold text-white">{symbol}</h2>
-          <span className="text-sm font-semibold text-green-400">₹{currentPrice.toLocaleString('en-IN')}</span>
-          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded font-bold animate-pulse">● LIVE TBT</span>
+    <div className="bg-[#131B2A] border border-[#1E2638] rounded-2xl p-4 flex flex-col h-full font-mono text-white w-full shadow-lg">
+      <div className="flex flex-wrap justify-between items-center mb-3 px-2 gap-2">
+        <div className="text-white font-bold text-lg flex items-center gap-2">
+          <span>{symbol || 'NIFTY 50'}</span>
+          <span className="text-emerald-400 text-sm">₹{currentPrice}</span>
         </div>
 
+        {/* ॲडव्हान्स इंडिकेटर्स सिलेक्शन बटन्स */}
         <div className="flex items-center space-x-2">
           <div className="flex bg-[#0F141C] p-1 rounded-lg border border-[#1E2638] text-xs space-x-1">
-            {['1m', '5m', '15m', '1H', '1D'].map((tf) => (
+            {['EMA', 'SMA', 'RSI'].map((ind) => (
               <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
-                className={`px-2 py-0.5 rounded font-bold transition ${timeframe === tf ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                key={ind}
+                onClick={() => setIndicator(ind)}
+                className={`px-2.5 py-1 rounded font-bold transition cursor-pointer ${
+                  indicator === ind ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
+                }`}
               >
-                {tf}
+                {ind}
               </button>
             ))}
           </div>
-
-          <button className="p-1.5 bg-[#0F141C] border border-[#1E2638] rounded-lg text-gray-300 hover:text-white">
-            <FiSettings size={14} />
-          </button>
-          <button className="p-1.5 bg-[#0F141C] border border-[#1E2638] rounded-lg text-gray-300 hover:text-white">
-            <FiMaximize2 size={14} />
-          </button>
+          <div className="bg-emerald-950 border border-emerald-500 text-emerald-400 text-xs px-2.5 py-1 rounded-full animate-pulse">
+            ● LIVE
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 bg-[#0F141C] rounded-xl mt-3 border border-[#1E2638] relative overflow-hidden flex flex-col">
-        <canvas 
-          ref={canvasRef} 
-          width={1200} 
-          height={500} 
-          className="w-full h-full object-fill cursor-crosshair"
-        />
-
-        <div className="absolute bottom-2 left-3 right-20 flex justify-between items-center bg-[#131B2A]/90 px-3 py-1.5 rounded-lg border border-[#1E2638] text-[11px] backdrop-blur">
-          <span className="text-gray-400">Symbol: <strong className="text-white">{symbol}</strong></span>
-          <span className="text-gray-400">LTP: <strong className="text-green-400">₹{currentPrice}</strong></span>
-          <span className="text-gray-400">RSI (14): <strong className="text-purple-400">58.40</strong></span>
-          <span className="text-gray-400">Volume: <strong className="text-blue-400">1.42M</strong></span>
-        </div>
+      <div className="flex items-center justify-between bg-[#0F141C] px-3 py-1.5 rounded-lg border border-[#1E2638] text-xs mb-2 text-gray-400">
+        <span>Active Indicator: <strong className="text-purple-400">{indicator} (14)</strong></span>
+        <span>Value: <strong className="text-amber-400">{indicator === 'RSI' ? '58.40' : (currentPrice * 0.995).toFixed(2)}</strong></span>
       </div>
+      
+      <div ref={chartContainerRef} className="w-full h-[420px] rounded-lg overflow-hidden flex-1" />
     </div>
   );
 }
