@@ -19,7 +19,6 @@ const stockBasePrices = {
 };
 
 export default function App() {
-  // localStorage मधून डेटा वाचणे जेणेकरून रिफ्रेश झाल्यावर काहीही डिलीट होणार नाही
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('alpha_isLoggedIn') === 'true';
   });
@@ -33,24 +32,20 @@ export default function App() {
   const [newStockInput, setNewStockInput] = useState('');
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('NIFTY');
 
-  // Upstox Token localStorage मध्ये सेव्ह राहणे
   const [isUpstoxConnected, setIsUpstoxConnected] = useState(() => {
     return localStorage.getItem('alpha_upstoxConnected') === 'true';
   });
   const [showTokenModal, setShowTokenModal] = useState(false);
-  const [showBasketPanel, setShowBasketPanel] = useState(false);
-  const [showQuickTradeModal, setShowQuickTradeModal] = useState(false);
   const [upstoxToken, setUpstoxToken] = useState('');
 
   const [selectedOrderStock, setSelectedOrderStock] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
-  const [portfolioSubTab, setPortfolioSubTab] = useState('positions');
+  const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
   const [positions, setPositions] = useState([]);
   const [holdings, setHoldings] = useState([]);
   const [orderHistory, setOrderHistory] = useState([]);
-  const [virtualFunds, setVirtualFunds] = useState(485240.00);
 
   const [email, setEmail] = useState('pkamble.kvic@hokvic.gov.in');
   const [password, setPassword] = useState('••••••••');
@@ -58,7 +53,6 @@ export default function App() {
   const [fullName, setFullName] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  // वॉचलिस्ट स्टॉक्स localStorage मधून लोड करणे
   const [stocks, setStocks] = useState(() => {
     const savedStocks = localStorage.getItem('alpha_watchlist');
     if (savedStocks) {
@@ -75,7 +69,6 @@ export default function App() {
     ];
   });
 
-  // स्टेट बदलल्यावर localStorage मध्ये डेटा सेव्ह करणे
   useEffect(() => {
     localStorage.setItem('alpha_isLoggedIn', isLoggedIn);
   }, [isLoggedIn]);
@@ -149,47 +142,10 @@ export default function App() {
           return { ...stock, price: newPrice, isUp: changeVal >= 0 };
         })
       );
-
-      setOptionRows(prevRows =>
-        prevRows.map(row => ({
-          ...row,
-          callLTP: Math.max(5, parseFloat((row.callLTP + (Math.random() - 0.48) * 3).toFixed(2))),
-          putLTP: Math.max(5, parseFloat((row.putLTP + (Math.random() - 0.48) * 3).toFixed(2))),
-        }))
-      );
-
-      setPositions(prevPos =>
-        prevPos.map(pos => {
-          const priceChange = (Math.random() - 0.48) * 4;
-          const newLtp = parseFloat((pos.ltp + priceChange).toFixed(2));
-          const diff = pos.type === 'BUY' ? (newLtp - pos.avgPrice) : (pos.avgPrice - newLtp);
-          const totalPnlVal = parseFloat((diff * 25).toFixed(2));
-          return {
-            ...pos,
-            ltp: newLtp,
-            pnlVal: totalPnlVal,
-            pnl: `${totalPnlVal >= 0 ? '+' : ''}₹${totalPnlVal}`
-          };
-        })
-      );
-
-      setHoldings(prevHold =>
-        prevHold.map(h => {
-          const currStock = stocks.find(s => s.name === h.instrument);
-          const currentVal = currStock ? currStock.price * 10 : h.avgPrice * 10;
-          const pnlVal = currentVal - (h.avgPrice * 10);
-          return {
-            ...h,
-            currentVal: parseFloat(currentVal.toFixed(2)),
-            pnlVal: parseFloat(pnlVal.toFixed(2)),
-            pnl: `${pnlVal >= 0 ? '+' : ''}₹${pnlVal.toFixed(2)}`
-          };
-        })
-      );
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isLoggedIn, stocks]);
+  }, [isLoggedIn]);
 
   const handleSaveToken = () => {
     if (upstoxToken.trim() !== '') {
@@ -217,12 +173,12 @@ export default function App() {
     alert(`${sym} वॉचलिस्टमध्ये यशस्वीरीत्या जोडला गेला!`);
   };
 
-  const executeTrade = (instrumentName, price, type, category = 'position', quantity = 1) => {
+  const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1) => {
     const tradeTime = new Date().toLocaleTimeString();
     const newTrade = {
       id: Date.now(),
       instrument: instrumentName,
-      qty: category === 'position' ? `${quantity} Lot (${quantity * 25} Qty)` : `${quantity * 10} Qty`,
+      qty: `${quantity * 10} Qty`,
       avgPrice: price,
       ltp: price,
       pnlVal: 0.00,
@@ -244,8 +200,6 @@ export default function App() {
     }
   };
 
-  const totalUnrealizedPnL = positions.reduce((acc, curr) => acc + (curr.pnlVal || 0), 0);
-
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -254,122 +208,23 @@ export default function App() {
             <span className="bg-purple-600 text-white font-bold px-4 py-1.5 rounded-lg text-base tracking-wide shadow-md">
               AlphaTrade Pro
             </span>
-            <p className="text-gray-400 text-xs mt-2">
-              {authMode === 'login' && 'Login to your trading terminal'}
-              {authMode === 'register' && 'Create a new Paper Trading account'}
-              {authMode === 'forgot' && 'Password Recovery via Email'}
-              {authMode === 'resetNew' && 'Set New Password'}
-            </p>
+            <p className="text-gray-400 text-xs mt-2">Login to your trading terminal</p>
           </div>
 
-          {authMode === 'login' && (
-            <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              
-              <div className="flex justify-end text-xs">
-                <button type="button" onClick={() => { setAuthMode('forgot'); setResetSent(false); }} className="text-purple-400 hover:underline cursor-pointer">
-                  Forgot Password?
-                </button>
-              </div>
-
-              <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                Login to Terminal &rarr;
-              </button>
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Don't have an account?{' '}
-                <button type="button" onClick={() => setAuthMode('register')} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Register Now
-                </button>
-              </div>
-            </form>
-          )}
-
-          {authMode === 'register' && (
-            <form onSubmit={(e) => { e.preventDefault(); alert("Registration successful! Please login."); setAuthMode('login'); }} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">FULL NAME</label>
-                <input type="text" placeholder="Enter full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
-                <input type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">CREATE PASSWORD</label>
-                <input type="password" placeholder="Create password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                Create Account &rarr;
-              </button>
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Already have an account?{' '}
-                <button type="button" onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Login Here
-                </button>
-              </div>
-            </form>
-          )}
-
-          {authMode === 'forgot' && (
-            <div className="space-y-4 text-left">
-              {!resetSent ? (
-                <form onSubmit={(e) => { e.preventDefault(); setResetSent(true); }} className="space-y-4">
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">ENTER REGISTERED EMAIL</label>
-                    <input type="email" placeholder="name@hokvic.gov.in" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-                  </div>
-                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                    Send Reset Link to Email &rarr;
-                  </button>
-                </form>
-              ) : (
-                <div className="bg-green-950/40 border border-green-500/40 p-4 rounded-xl text-center space-y-3">
-                  <p className="text-green-400 text-xs font-bold">✓ Password Reset Link Sent Successfully!</p>
-                  <p className="text-gray-300 text-[11px]">We have sent a secure password reset link to <strong className="text-white">{email}</strong>.</p>
-                  <button onClick={() => setAuthMode('resetNew')} className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg text-xs cursor-pointer">
-                    Click here to Set New Password &rarr;
-                  </button>
-                </div>
-              )}
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Remembered password?{' '}
-                <button type="button" onClick={() => { setAuthMode('login'); setResetSent(false); }} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Back to Login
-                </button>
-              </div>
+          <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
             </div>
-          )}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+            </div>
 
-          {authMode === 'resetNew' && (
-            <form onSubmit={(e) => { e.preventDefault(); setPassword(newPassword); alert("Password updated successfully! Please login with your new password."); setAuthMode('login'); setResetSent(false); }} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">NEW PASSWORD</label>
-                <input type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                Update Password & Login &rarr;
-              </button>
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                <button type="button" onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Cancel & Back to Login
-                </button>
-              </div>
-            </form>
-          )}
-
+            <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
+              Login to Terminal &rarr;
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -396,7 +251,6 @@ export default function App() {
           <button onClick={() => setActiveTab('portfolio')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Portfolio & History</button>
         </nav>
 
-        {/* Upstox Connection & Profile Dropdown */}
         <div className="flex items-center space-x-3 relative">
           {isUpstoxConnected ? (
             <div className="flex items-center space-x-1.5 bg-green-950/60 border border-green-500/40 px-3 py-1 rounded-lg text-xs">
@@ -414,14 +268,6 @@ export default function App() {
               <div className="px-4 py-3 border-b border-gray-800">
                 <p className="text-gray-200 font-bold flex items-center gap-1.5"><FiUser size={14}/> Prashant Kamble</p>
                 <p className="text-[10px] text-gray-400 mt-0.5">User ID: 122758</p>
-              </div>
-              <div className="py-1 text-gray-300">
-                <button onClick={() => { setShowProfileMenu(false); setShowProfileModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>👤 My Account | ID 122758</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("F&O and MCX segments are active for Paper Trading."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-green-400"><span>⚡ Activate F&O, MCX</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("Opening My Reports..."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiFileText size={13}/><span>My Reports</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("Settings panel open."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiSettings size={13}/><span>Settings</span></button>
-                <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("Help & Support: support@hokvic.gov.in"); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiHelpCircle size={13}/><span>Help & Support</span></button>
               </div>
               <div className="border-t border-gray-800 pt-1">
                 <button onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); setAuthMode('login'); localStorage.removeItem('alpha_isLoggedIn'); }} className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold cursor-pointer"><FiLogOut size={13}/><span>Logout</span></button>
@@ -466,14 +312,14 @@ export default function App() {
             {stocks
               .filter(stock => stock.name.toLowerCase().includes(watchlistSearch.toLowerCase()))
               .map((stock, idx) => (
-                <div key={idx} className={`p-3 hover:bg-gray-800/60 transition-all flex items-center justify-between cursor-pointer ${selectedStock === stock.name ? 'bg-gray-800/80 border-l-4 border-purple-600' : ''}`} onClick={() => setSelectedStock(stock.name)}>
-                  <div>
+                <div key={idx} className={`p-3 hover:bg-gray-800/60 transition-all flex items-center justify-between cursor-pointer ${selectedStock === stock.name ? 'bg-gray-800/80 border-l-4 border-purple-600' : ''}`}>
+                  <div onClick={() => setSelectedStock(stock.name)} className="flex-1">
                     <p className="text-xs font-bold text-white">{stock.name}</p>
-                    <span className="text-[10px] text-gray-400">NSE</span>
+                    <span className="text-[10px] text-gray-400">NSE ₹{stock.price.toFixed(2)}</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-white">₹{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                    <span className={`text-[10px] font-semibold ${stock.isUp ? 'text-green-400' : 'text-red-400'}`}>{stock.change}</span>
+                  <div className="flex items-center space-x-1">
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'holding' })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'holding' })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
                   </div>
                 </div>
             ))}
@@ -483,7 +329,12 @@ export default function App() {
         <main className="flex-1 bg-[#0b0e14] p-4 flex flex-col overflow-y-auto">
           {activeTab === 'chart' && (
             <div className="w-full h-full flex flex-col">
-              <AdvancedChart symbol={selectedStock} ltp={currentStockObj.price} />
+              <AdvancedChart 
+                symbol={selectedStock} 
+                ltp={currentStockObj.price} 
+                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'holding' })}
+                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'holding' })}
+              />
             </div>
           )}
 
@@ -496,43 +347,31 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="flex justify-between items-center mb-3 text-xs">
-                <span className="font-bold text-purple-400">📊 Upstox Pro Style Option Chain - {selectedOptionSymbol}</span>
-                <span className="text-gray-400">Click <strong className="text-blue-400">[B]</strong> to Buy or <strong className="text-red-400">[S]</strong> to Sell</span>
-              </div>
-
               <div className="overflow-x-auto flex-1 border border-gray-800 rounded-lg">
                 <table className="w-full text-left text-[11px] text-gray-300 border-collapse whitespace-nowrap font-mono">
                   <thead>
-                    <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-center uppercase tracking-wider text-[10px]">
-                      <th className="p-2.5 border-r border-gray-800/60 bg-blue-950/20" colSpan="10">Calls (CE)</th>
+                    <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-center uppercase text-[10px]">
+                      <th className="p-2.5 bg-blue-950/20" colSpan="10">Calls (CE)</th>
                       <th className="p-2.5 bg-gray-900 font-bold text-amber-400">STRIKE</th>
-                      <th className="p-2.5 border-l border-gray-800/60 bg-red-950/20" colSpan="10">Puts (PE)</th>
-                    </tr>
-                    <tr className="bg-gray-900/90 text-gray-400 border-b border-gray-800 text-[10px]">
-                      <th className="p-2">Volume</th><th className="p-2">IV</th><th className="p-2">Vega</th><th className="p-2">Gamma</th><th className="p-2">Theta</th><th className="p-2">Delta</th><th className="p-2">OI (chg)</th><th className="p-2">OI (Lakhs)</th><th className="p-2">LTP</th><th className="p-2 border-r border-gray-800">Action</th>
-                      <th className="p-2 text-center bg-gray-900 font-bold text-amber-400">PRICE</th>
-                      <th className="p-2 border-l border-gray-800">Action</th><th className="p-2">LTP</th><th className="p-2">OI (Lakhs)</th><th className="p-2">OI (chg)</th><th className="p-2">Delta</th><th className="p-2">Theta</th><th className="p-2">Gamma</th><th className="p-2">Vega</th><th className="p-2">IV</th><th className="p-2">Volume</th>
+                      <th className="p-2.5 bg-red-950/20" colSpan="10">Puts (PE)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/60">
                     {optionRows.map((r, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/45 transition-colors text-center">
-                        <td className="p-2 text-gray-400">{r.callVol}</td><td className="p-2 text-gray-400">{r.callIV}</td><td className="p-2 text-gray-400">{r.callVega}</td><td className="p-2 text-gray-400">{r.callGamma}</td><td className="p-2 text-gray-400">{r.callTheta}</td><td className="p-2 text-gray-400">{r.callDelta}</td><td className="p-2 text-green-400">{r.callOIChg}</td><td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
-                        <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.callLTP.toFixed(2)}</td>
-                        <td className="p-2 border-r border-gray-800 space-x-1">
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 hover:bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">B</button>
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 hover:bg-red-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">S</button>
+                        <td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
+                        <td className="p-2 text-amber-400 font-bold">₹{r.callLTP.toFixed(2)}</td>
+                        <td className="p-2 space-x-1">
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-
                         <td className="p-2 font-bold text-white bg-gray-900/80 border-x border-gray-800 text-xs">{r.strike}</td>
-
-                        <td className="p-2 border-l border-gray-800 space-x-1">
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 hover:bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">B</button>
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 hover:bg-red-500 text-white px-1.5 py-0.5 rounded font-bold text-[9px] cursor-pointer">S</button>
+                        <td className="p-2 space-x-1">
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-                        <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.putLTP.toFixed(2)}</td>
-                        <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td><td className="p-2 text-green-400">{r.putOIChg}</td><td className="p-2 text-gray-400">{r.putDelta}</td><td className="p-2 text-gray-400">{r.putTheta}</td><td className="p-2 text-gray-400">{r.putGamma}</td><td className="p-2 text-gray-400">{r.putVega}</td><td className="p-2 text-gray-400">{r.putIV}</td><td className="p-2 text-gray-400">{r.putVol}</td>
+                        <td className="p-2 text-amber-400 font-bold">₹{r.putLTP.toFixed(2)}</td>
+                        <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -545,10 +384,37 @@ export default function App() {
             <div className="flex-1 bg-[#12141c] border border-gray-800 rounded-xl p-4 flex flex-col text-xs text-white">
               <h2 className="text-sm font-bold mb-3">Portfolio & Order History Log</h2>
               <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-3">
-                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer ${portfolioSubTab === 'positions' ? 'text-purple-400' : 'text-gray-400'}`}>Positions ({positions.length})</button>
                 <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer ${portfolioSubTab === 'holdings' ? 'text-purple-400' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
+                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer ${portfolioSubTab === 'positions' ? 'text-purple-400' : 'text-gray-400'}`}>Positions ({positions.length})</button>
                 <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer ${portfolioSubTab === 'history' ? 'text-purple-400' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
               </div>
+
+              {portfolioSubTab === 'holdings' && (
+                <div className="overflow-x-auto flex-1">
+                  {holdings.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No holdings available. Buy stocks from watchlist or chart.</p>
+                  ) : (
+                    <table className="w-full text-center border-collapse">
+                      <thead>
+                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
+                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {holdings.map(h => (
+                          <tr key={h.id} className="border-b border-gray-800">
+                            <td className="p-2 font-bold">{h.instrument}</td>
+                            <td className="p-2">{h.qty}</td>
+                            <td className="p-2">₹{h.avgPrice}</td>
+                            <td className="p-2 text-amber-400">₹{h.currentVal}</td>
+                            <td className="p-2 text-green-400 font-bold">{h.pnl}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
 
               {portfolioSubTab === 'positions' && (
                 <div className="overflow-x-auto flex-1">
@@ -565,37 +431,10 @@ export default function App() {
                         {positions.map(p => (
                           <tr key={p.id} className="border-b border-gray-800">
                             <td className="p-2 font-bold">{p.instrument}</td>
-                            <td className={`p-2 font-bold ${p.type === 'BUY' ? 'text-blue-400' : 'text-red-400'}`}>{p.type}</td>
+                            <td className="p-2 text-blue-400">{p.type}</td>
                             <td className="p-2">{p.qty}</td>
                             <td className="p-2">₹{p.avgPrice}</td>
-                            <td className={`p-2 font-bold ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-
-              {portfolioSubTab === 'holdings' && (
-                <div className="overflow-x-auto flex-1">
-                  {holdings.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No holdings available.</p>
-                  ) : (
-                    <table className="w-full text-center border-collapse">
-                      <thead>
-                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {holdings.map(h => (
-                          <tr key={h.id} className="border-b border-gray-800">
-                            <td className="p-2 font-bold">{h.instrument}</td>
-                            <td className="p-2">{h.qty}</td>
-                            <td className="p-2">₹{h.avgPrice}</td>
-                            <td className="p-2 text-amber-400">₹{h.currentVal}</td>
-                            <td className={`p-2 font-bold ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
+                            <td className="p-2 text-green-400">{p.pnl}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -617,10 +456,10 @@ export default function App() {
                       </thead>
                       <tbody>
                         {orderHistory.map(ord => (
-                          <tr key={ord.id} className="border-b border-gray-800 hover:bg-gray-800/30">
+                          <tr key={ord.id} className="border-b border-gray-800">
                             <td className="p-2 text-gray-400">{ord.time}</td>
                             <td className="p-2 font-bold text-white">{ord.instrument}</td>
-                            <td className={`p-2 font-bold ${ord.type === 'BUY' ? 'text-blue-400' : 'text-red-400'}`}>{ord.type}</td>
+                            <td className="p-2 text-blue-400">{ord.type}</td>
                             <td className="p-2">{ord.qty}</td>
                             <td className="p-2 text-amber-400">₹{ord.avgPrice}</td>
                             <td className="p-2 text-green-400 font-bold">{ord.status}</td>
@@ -636,32 +475,17 @@ export default function App() {
         </main>
       </div>
 
-      {/* Modals */}
       {showTokenModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-base font-bold text-amber-400 mb-2">🔑 Set Upstox Access Token</h3>
             <input type="text" placeholder="Paste Upstox Access Token..." value={upstoxToken} onChange={(e) => setUpstoxToken(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg p-2.5 text-xs text-gray-200 mb-4 focus:outline-none focus:border-purple-600" />
             <div className="flex justify-end space-x-2">
-              <button onClick={() => setShowTokenModal(false)} className="px-4 py-1.5 rounded text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 cursor-pointer">Cancel</button>
-              <button onClick={handleSaveToken} className="px-4 py-1.5 rounded text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer">Save & Connect</button>
+              <button onClick={() => setShowTokenModal(false)} className="px-4 py-1.5 rounded text-xs bg-gray-800 text-gray-300 cursor-pointer">Cancel</button>
+              <button onClick={handleSaveToken} className="px-4 py-1.5 rounded text-xs bg-purple-600 text-white font-bold cursor-pointer">Save & Connect</button>
             </div>
           </div>
         </div>
-      )}
-
-      {showProfileModal && (
-        <ProfileModal 
-          email={email} 
-          onClose={() => setShowProfileModal(false)} 
-          onLogout={() => { setIsLoggedIn(false); setShowProfileModal(false); localStorage.removeItem('alpha_isLoggedIn'); }} 
-        />
-      )}
-
-      {showFeedbackModal && (
-        <FeedbackModal 
-          onClose={() => setShowFeedbackModal(false)} 
-        />
       )}
 
       {selectedOrderStock && (
@@ -671,7 +495,7 @@ export default function App() {
             actionType={selectedOrderStock.actionType}
             onClose={() => setSelectedOrderStock(null)}
             onPlaceOrder={(orderDetails) => {
-              executeTrade(orderDetails.symbol, orderDetails.price, orderDetails.action, 'position', orderDetails.quantity);
+              executeTrade(orderDetails.symbol, orderDetails.price, orderDetails.action, selectedOrderStock.category || 'holding', orderDetails.quantity);
               setSelectedOrderStock(null);
             }}
           />
