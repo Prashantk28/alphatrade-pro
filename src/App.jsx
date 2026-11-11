@@ -263,11 +263,20 @@ export default function App() {
 
           <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all">PK</button>
           
+          {/* पूर्ण प्रोफाईल मेनू (My Account, Activate F&O, Reports, Settings, Feedback इ.) */}
           {showProfileMenu && (
             <div className="absolute right-0 top-10 w-64 bg-[#181b25] border border-gray-800 rounded-xl shadow-2xl py-2 z-50 font-sans text-xs">
               <div className="px-4 py-3 border-b border-gray-800">
                 <p className="text-gray-200 font-bold flex items-center gap-1.5"><FiUser size={14}/> Prashant Kamble</p>
                 <p className="text-[10px] text-gray-400 mt-0.5">User ID: 122758</p>
+              </div>
+              <div className="py-1 text-gray-300">
+                <button onClick={() => { setShowProfileMenu(false); setShowProfileModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>👤 My Account | ID 122758</span></button>
+                <button onClick={() => { setShowProfileMenu(false); alert("F&O and MCX segments are active for Paper Trading."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-green-400"><span>⚡ Activate F&O, MCX</span></button>
+                <button onClick={() => { setShowProfileMenu(false); alert("Opening My Reports..."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiFileText size={13}/><span>My Reports</span></button>
+                <button onClick={() => { setShowProfileMenu(false); alert("Settings panel open."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiSettings size={13}/><span>Settings</span></button>
+                <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
+                <button onClick={() => { setShowProfileMenu(false); alert("Help & Support: support@hokvic.gov.in"); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiHelpCircle size={13}/><span>Help & Support</span></button>
               </div>
               <div className="border-t border-gray-800 pt-1">
                 <button onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); setAuthMode('login'); localStorage.removeItem('alpha_isLoggedIn'); }} className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold cursor-pointer"><FiLogOut size={13}/><span>Logout</span></button>
@@ -347,31 +356,43 @@ export default function App() {
                 ))}
               </div>
 
+              <div className="flex justify-between items-center mb-3 text-xs">
+                <span className="font-bold text-purple-400">📊 Upstox Pro Style Option Chain - {selectedOptionSymbol}</span>
+                <span className="text-gray-400">Click <strong className="text-blue-400">[B]</strong> to Buy or <strong className="text-red-400">[S]</strong> to Sell</span>
+              </div>
+
               <div className="overflow-x-auto flex-1 border border-gray-800 rounded-lg">
                 <table className="w-full text-left text-[11px] text-gray-300 border-collapse whitespace-nowrap font-mono">
                   <thead>
-                    <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-center uppercase text-[10px]">
-                      <th className="p-2.5 bg-blue-950/20" colSpan="10">Calls (CE)</th>
+                    <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-center uppercase tracking-wider text-[10px]">
+                      <th className="p-2.5 border-r border-gray-800/60 bg-blue-950/20" colSpan="10">Calls (CE)</th>
                       <th className="p-2.5 bg-gray-900 font-bold text-amber-400">STRIKE</th>
-                      <th className="p-2.5 bg-red-950/20" colSpan="10">Puts (PE)</th>
+                      <th className="p-2.5 border-l border-gray-800/60 bg-red-950/20" colSpan="10">Puts (PE)</th>
+                    </tr>
+                    <tr className="bg-gray-900/90 text-gray-400 border-b border-gray-800 text-[10px]">
+                      <th className="p-2">Volume</th><th className="p-2">IV</th><th className="p-2">Vega</th><th className="p-2">Gamma</th><th className="p-2">Theta</th><th className="p-2">Delta</th><th className="p-2">OI (chg)</th><th className="p-2">OI (Lakhs)</th><th className="p-2">LTP</th><th className="p-2 border-r border-gray-800">Action</th>
+                      <th className="p-2 text-center bg-gray-900 font-bold text-amber-400">PRICE</th>
+                      <th className="p-2 border-l border-gray-800">Action</th><th className="p-2">LTP</th><th className="p-2">OI (Lakhs)</th><th className="p-2">OI (chg)</th><th className="p-2">Delta</th><th className="p-2">Theta</th><th className="p-2">Gamma</th><th className="p-2">Vega</th><th className="p-2">IV</th><th className="p-2">Volume</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/60">
                     {optionRows.map((r, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/45 transition-colors text-center">
-                        <td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
+                        <td className="p-2 text-gray-400">{r.callVol}</td><td className="p-2 text-gray-400">{r.callIV}</td><td className="p-2 text-gray-400">{r.callVega}</td><td className="p-2 text-gray-400">{r.callGamma}</td><td className="p-2 text-gray-400">{r.callTheta}</td><td className="p-2 text-gray-400">{r.callDelta}</td><td className="p-2 text-green-400">{r.callOIChg}</td><td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
                         <td className="p-2 text-amber-400 font-bold">₹{r.callLTP.toFixed(2)}</td>
-                        <td className="p-2 space-x-1">
+                        <td className="p-2 border-r border-gray-800 space-x-1">
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
+
                         <td className="p-2 font-bold text-white bg-gray-900/80 border-x border-gray-800 text-xs">{r.strike}</td>
-                        <td className="p-2 space-x-1">
+
+                        <td className="p-2 border-l border-gray-800 space-x-1">
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
                         <td className="p-2 text-amber-400 font-bold">₹{r.putLTP.toFixed(2)}</td>
-                        <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td>
+                        <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td><td className="p-2 text-green-400">{r.putOIChg}</td><td className="p-2 text-gray-400">{r.putDelta}</td><td className="p-2 text-gray-400">{r.putTheta}</td><td className="p-2 text-gray-400">{r.putGamma}</td><td className="p-2 text-gray-400">{r.putVega}</td><td className="p-2 text-gray-400">{r.putIV}</td><td className="p-2 text-gray-400">{r.putVol}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -486,6 +507,14 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {showProfileModal && (
+        <ProfileModal email={email} onClose={() => setShowProfileModal(false)} onLogout={() => { setIsLoggedIn(false); setShowProfileModal(false); localStorage.removeItem('alpha_isLoggedIn'); }} />
+      )}
+
+      {showFeedbackModal && (
+        <FeedbackModal onClose={() => setShowFeedbackModal(false)} />
       )}
 
       {selectedOrderStock && (
