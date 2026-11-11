@@ -23,7 +23,7 @@ export default function App() {
     return localStorage.getItem('alpha_isLoggedIn') === 'true';
   });
   
-  const [authMode, setAuthMode] = useState('login'); 
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot', 'resetNew'
   const [activeTab, setActiveTab] = useState('chart');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
@@ -132,6 +132,7 @@ export default function App() {
     setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
+  // लाईव्ह प्राईस फ्लक्चुएशन (Watchlist, Option Chain आणि Positions P&L साठी)
   useEffect(() => {
     if (!isLoggedIn) return;
     const timer = setInterval(() => {
@@ -140,6 +141,43 @@ export default function App() {
           const changeVal = (Math.random() - 0.48) * (stock.price * 0.001);
           const newPrice = parseFloat((stock.price + changeVal).toFixed(2));
           return { ...stock, price: newPrice, isUp: changeVal >= 0 };
+        })
+      );
+
+      setOptionRows(prevRows =>
+        prevRows.map(row => ({
+          ...row,
+          callLTP: Math.max(5, parseFloat((row.callLTP + (Math.random() - 0.48) * 3).toFixed(2))),
+          putLTP: Math.max(5, parseFloat((row.putLTP + (Math.random() - 0.48) * 3).toFixed(2))),
+        }))
+      );
+
+      setPositions(prevPos =>
+        prevPos.map(pos => {
+          const priceChange = (Math.random() - 0.48) * 4;
+          const newLtp = parseFloat((pos.ltp + priceChange).toFixed(2));
+          const diff = pos.type === 'BUY' ? (newLtp - pos.avgPrice) : (pos.avgPrice - newLtp);
+          const totalPnlVal = parseFloat((diff * 10).toFixed(2));
+          return {
+            ...pos,
+            ltp: newLtp,
+            pnlVal: totalPnlVal,
+            pnl: `${totalPnlVal >= 0 ? '+' : ''}₹${totalPnlVal.toFixed(2)}`
+          };
+        })
+      );
+
+      setHoldings(prevHold =>
+        prevHold.map(h => {
+          const priceChange = (Math.random() - 0.48) * 3;
+          const newCurrVal = parseFloat((h.currentVal + priceChange).toFixed(2));
+          const pnlVal = parseFloat((newCurrVal - (h.avgPrice * 10)).toFixed(2));
+          return {
+            ...h,
+            currentVal: newCurrVal,
+            pnlVal: pnlVal,
+            pnl: `${pnlVal >= 0 ? '+' : ''}₹${pnlVal.toFixed(2)}`
+          };
         })
       );
     }, 1000);
@@ -200,6 +238,7 @@ export default function App() {
     }
   };
 
+  // Login Page with Register, Forgot Password, and Reset features
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -208,23 +247,122 @@ export default function App() {
             <span className="bg-purple-600 text-white font-bold px-4 py-1.5 rounded-lg text-base tracking-wide shadow-md">
               AlphaTrade Pro
             </span>
-            <p className="text-gray-400 text-xs mt-2">Login to your trading terminal</p>
+            <p className="text-gray-400 text-xs mt-2">
+              {authMode === 'login' && 'Login to your trading terminal'}
+              {authMode === 'register' && 'Create a new Paper Trading account'}
+              {authMode === 'forgot' && 'Password Recovery via Email'}
+              {authMode === 'resetNew' && 'Set New Password'}
+            </p>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-            </div>
+          {authMode === 'login' && (
+            <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+              </div>
+              
+              <div className="flex justify-end text-xs">
+                <button type="button" onClick={() => { setAuthMode('forgot'); setResetSent(false); }} className="text-purple-400 hover:underline cursor-pointer">
+                  Forgot Password?
+                </button>
+              </div>
 
-            <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-              Login to Terminal &rarr;
-            </button>
-          </form>
+              <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
+                Login to Terminal &rarr;
+              </button>
+
+              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
+                Don't have an account?{' '}
+                <button type="button" onClick={() => setAuthMode('register')} className="text-purple-400 font-bold hover:underline cursor-pointer">
+                  Register Now
+                </button>
+              </div>
+            </form>
+          )}
+
+          {authMode === 'register' && (
+            <form onSubmit={(e) => { e.preventDefault(); alert("Registration successful! Please login."); setAuthMode('login'); }} className="space-y-4 text-left">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">FULL NAME</label>
+                <input type="text" placeholder="Enter full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
+                <input type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">CREATE PASSWORD</label>
+                <input type="password" placeholder="Create password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+              </div>
+
+              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
+                Create Account &rarr;
+              </button>
+
+              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
+                Already have an account?{' '}
+                <button type="button" onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline cursor-pointer">
+                  Login Here
+                </button>
+              </div>
+            </form>
+          )}
+
+          {authMode === 'forgot' && (
+            <div className="space-y-4 text-left">
+              {!resetSent ? (
+                <form onSubmit={(e) => { e.preventDefault(); setResetSent(true); }} className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">ENTER REGISTERED EMAIL</label>
+                    <input type="email" placeholder="name@hokvic.gov.in" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+                  </div>
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
+                    Send Reset Link to Email &rarr;
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-green-950/40 border border-green-500/40 p-4 rounded-xl text-center space-y-3">
+                  <p className="text-green-400 text-xs font-bold">✓ Password Reset Link Sent Successfully!</p>
+                  <p className="text-gray-300 text-[11px]">We have sent a secure password reset link to <strong className="text-white">{email}</strong>.</p>
+                  <button onClick={() => setAuthMode('resetNew')} className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg text-xs cursor-pointer">
+                    Click here to Set New Password &rarr;
+                  </button>
+                </div>
+              )}
+
+              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
+                Remembered password?{' '}
+                <button type="button" onClick={() => { setAuthMode('login'); setResetSent(false); }} className="text-purple-400 font-bold hover:underline cursor-pointer">
+                  Back to Login
+                </button>
+              </div>
+            </div>
+          )}
+
+          {authMode === 'resetNew' && (
+            <form onSubmit={(e) => { e.preventDefault(); setPassword(newPassword); alert("Password updated successfully! Please login with your new password."); setAuthMode('login'); setResetSent(false); }} className="space-y-4 text-left">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">NEW PASSWORD</label>
+                <input type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+              </div>
+
+              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
+                Update Password & Login &rarr;
+              </button>
+
+              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
+                <button type="button" onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline cursor-pointer">
+                  Cancel & Back to Login
+                </button>
+              </div>
+            </form>
+          )}
+
         </div>
       </div>
     );
@@ -263,7 +401,6 @@ export default function App() {
 
           <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all">PK</button>
           
-          {/* पूर्ण प्रोफाईल मेनू (My Account, Activate F&O, Reports, Settings, Feedback इ.) */}
           {showProfileMenu && (
             <div className="absolute right-0 top-10 w-64 bg-[#181b25] border border-gray-800 rounded-xl shadow-2xl py-2 z-50 font-sans text-xs">
               <div className="px-4 py-3 border-b border-gray-800">
@@ -379,7 +516,7 @@ export default function App() {
                     {optionRows.map((r, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/45 transition-colors text-center">
                         <td className="p-2 text-gray-400">{r.callVol}</td><td className="p-2 text-gray-400">{r.callIV}</td><td className="p-2 text-gray-400">{r.callVega}</td><td className="p-2 text-gray-400">{r.callGamma}</td><td className="p-2 text-gray-400">{r.callTheta}</td><td className="p-2 text-gray-400">{r.callDelta}</td><td className="p-2 text-green-400">{r.callOIChg}</td><td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
-                        <td className="p-2 text-amber-400 font-bold">₹{r.callLTP.toFixed(2)}</td>
+                        <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.callLTP.toFixed(2)}</td>
                         <td className="p-2 border-r border-gray-800 space-x-1">
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
@@ -391,7 +528,7 @@ export default function App() {
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-                        <td className="p-2 text-amber-400 font-bold">₹{r.putLTP.toFixed(2)}</td>
+                        <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.putLTP.toFixed(2)}</td>
                         <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td><td className="p-2 text-green-400">{r.putOIChg}</td><td className="p-2 text-gray-400">{r.putDelta}</td><td className="p-2 text-gray-400">{r.putTheta}</td><td className="p-2 text-gray-400">{r.putGamma}</td><td className="p-2 text-gray-400">{r.putVega}</td><td className="p-2 text-gray-400">{r.putIV}</td><td className="p-2 text-gray-400">{r.putVol}</td>
                       </tr>
                     ))}
@@ -427,8 +564,8 @@ export default function App() {
                             <td className="p-2 font-bold">{h.instrument}</td>
                             <td className="p-2">{h.qty}</td>
                             <td className="p-2">₹{h.avgPrice}</td>
-                            <td className="p-2 text-amber-400">₹{h.currentVal}</td>
-                            <td className="p-2 text-green-400 font-bold">{h.pnl}</td>
+                            <td className="p-2 text-amber-400">₹{h.currentVal.toFixed(2)}</td>
+                            <td className={`p-2 font-bold ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -445,17 +582,18 @@ export default function App() {
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">P&L</th>
+                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th>
                         </tr>
                       </thead>
                       <tbody>
                         {positions.map(p => (
                           <tr key={p.id} className="border-b border-gray-800">
                             <td className="p-2 font-bold">{p.instrument}</td>
-                            <td className="p-2 text-blue-400">{p.type}</td>
+                            <td className={`p-2 font-bold ${p.type === 'BUY' ? 'text-blue-400' : 'text-red-400'}`}>{p.type}</td>
                             <td className="p-2">{p.qty}</td>
                             <td className="p-2">₹{p.avgPrice}</td>
-                            <td className="p-2 text-green-400">{p.pnl}</td>
+                            <td className="p-2 text-amber-400">₹{p.ltp}</td>
+                            <td className={`p-2 font-bold ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -480,7 +618,7 @@ export default function App() {
                           <tr key={ord.id} className="border-b border-gray-800">
                             <td className="p-2 text-gray-400">{ord.time}</td>
                             <td className="p-2 font-bold text-white">{ord.instrument}</td>
-                            <td className="p-2 text-blue-400">{ord.type}</td>
+                            <td className={`p-2 font-bold ${ord.type === 'BUY' ? 'text-blue-400' : 'text-red-400'}`}>{ord.type}</td>
                             <td className="p-2">{ord.qty}</td>
                             <td className="p-2 text-amber-400">₹{ord.avgPrice}</td>
                             <td className="p-2 text-green-400 font-bold">{ord.status}</td>
