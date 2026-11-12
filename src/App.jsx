@@ -36,13 +36,11 @@ export default function App() {
   });
   
   const [authMode, setAuthMode] = useState('login'); 
-  const [activeTab, setActiveTab] = useState('optionChain');
+  const [activeTab, setActiveTab] = useState('portfolio');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
-  // Watchlist Groups / Tabs (Upstox Style 1, 2, 3, 4, 5)
   const [activeWatchlistGroup, setActiveWatchlistGroup] = useState('1');
-
   const [watchlistSearch, setWatchlistSearch] = useState('');
   const [newStockInput, setNewStockInput] = useState('');
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('NIFTY');
@@ -65,7 +63,6 @@ export default function App() {
   const [orderHistory, setOrderHistory] = useState([]);
   const [gttOrders, setGttOrders] = useState([]);
 
-  // Funds Management state
   const [totalFunds, setTotalFunds] = useState(500000.00);
   const [usedMargin, setUsedMargin] = useState(14500.00);
 
@@ -75,7 +72,6 @@ export default function App() {
   const [fullName, setFullName] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  // Group-wise Watchlist State
   const [watchlistGroups, setWatchlistGroups] = useState(() => {
     const saved = localStorage.getItem('alpha_watchlist_groups');
     if (saved) {
@@ -178,11 +174,9 @@ export default function App() {
     setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
-  // लाईव्ह प्राईस फ्लक्चुएशन आणि Option Chain LTP फ्लक्चुएशन रिअल-टाईम अपडेट
   useEffect(() => {
     if (!isLoggedIn) return;
     const timer = setInterval(() => {
-      // 1. Watchlist Stocks Update
       setWatchlistGroups(prevGroups => {
         const updated = { ...prevGroups };
         Object.keys(updated).forEach(grpKey => {
@@ -206,7 +200,6 @@ export default function App() {
         return updated;
       });
 
-      // 2. Option Chain Calls (CE) & Puts (PE) LTP Fluctuation
       setOptionRows(prevRows =>
         prevRows.map(row => {
           const callDelta = (Math.random() - 0.47) * 4.5;
@@ -223,7 +216,6 @@ export default function App() {
         })
       );
 
-      // 3. Positions PnL Update
       setPositions(prevPos =>
         prevPos.map(pos => {
           const priceChange = (Math.random() - 0.48) * 4;
@@ -239,7 +231,6 @@ export default function App() {
         })
       );
 
-      // 4. Holdings PnL Update
       setHoldings(prevHold =>
         prevHold.map(h => {
           const priceChange = (Math.random() - 0.48) * 3;
@@ -343,6 +334,32 @@ export default function App() {
     }
   };
 
+  // Exit / Sell Holding stock
+  const handleExitHolding = (id) => {
+    const item = holdings.find(h => h.id === id);
+    if (!item) return;
+    setHoldings(holdings.filter(h => h.id !== id));
+    setTotalFunds(prev => prev + item.currentVal);
+    setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+    alert(`Successfully exited / sold ${item.instrument}! Funds updated.`);
+  };
+
+  // Square off Position
+  const handleSquareOffPosition = (id) => {
+    const item = positions.find(p => p.id === id);
+    if (!item) return;
+    setPositions(positions.filter(p => p.id !== id));
+    setTotalFunds(prev => prev + (item.ltp * 10) + item.pnlVal);
+    setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+    alert(`Successfully squared off position for ${item.instrument}!`);
+  };
+
+  // Cancel GTT Order
+  const handleCancelGtt = (id) => {
+    setGttOrders(gttOrders.filter(g => g.id !== id));
+    alert("GTT Order cancelled successfully.");
+  };
+
   const allActiveTrades = [...holdings, ...positions];
   const totalTradesCount = orderHistory.length;
   const winsCount = allActiveTrades.filter(item => item.pnlVal > 0).length;
@@ -360,121 +377,23 @@ export default function App() {
             <span className="bg-purple-600 text-white font-bold px-4 py-1.5 rounded-lg text-base tracking-wide shadow-md">
               AlphaTrade Pro
             </span>
-            <p className="text-gray-400 text-xs mt-2">
-              {authMode === 'login' && 'Login to your trading terminal'}
-              {authMode === 'register' && 'Create a new Paper Trading account'}
-              {authMode === 'forgot' && 'Password Recovery via Email'}
-              {authMode === 'resetNew' && 'Set New Password'}
-            </p>
+            <p className="text-gray-400 text-xs mt-2">Login to your trading terminal</p>
           </div>
 
-          {authMode === 'login' && (
-            <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              
-              <div className="flex justify-end text-xs">
-                <button type="button" onClick={() => { setAuthMode('forgot'); setResetSent(false); }} className="text-purple-400 hover:underline cursor-pointer">
-                  Forgot Password?
-                </button>
-              </div>
-
-              <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                Login to Terminal &rarr;
-              </button>
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Don't have an account?{' '}
-                <button type="button" onClick={() => setAuthMode('register')} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Register Now
-                </button>
-              </div>
-            </form>
-          )}
-
-          {authMode === 'register' && (
-            <form onSubmit={(e) => { e.preventDefault(); alert("Registration successful! Please login."); setAuthMode('login'); }} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">FULL NAME</label>
-                <input type="text" placeholder="Enter full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
-                <input type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">CREATE PASSWORD</label>
-                <input type="password" placeholder="Create password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                Create Account &rarr;
-              </button>
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Already have an account?{' '}
-                <button type="button" onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Login Here
-                </button>
-              </div>
-            </form>
-          )}
-
-          {authMode === 'forgot' && (
-            <div className="space-y-4 text-left">
-              {!resetSent ? (
-                <form onSubmit={(e) => { e.preventDefault(); setResetSent(true); }} className="space-y-4">
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">ENTER REGISTERED EMAIL</label>
-                    <input type="email" placeholder="name@hokvic.gov.in" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-                  </div>
-                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                    Send Reset Link to Email &rarr;
-                  </button>
-                </form>
-              ) : (
-                <div className="bg-green-950/40 border border-green-500/40 p-4 rounded-xl text-center space-y-3">
-                  <p className="text-green-400 text-xs font-bold">✓ Password Reset Link Sent Successfully!</p>
-                  <p className="text-gray-300 text-[11px]">We have sent a secure password reset link to <strong className="text-white">{email}</strong>.</p>
-                  <button onClick={() => setAuthMode('resetNew')} className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-lg text-xs cursor-pointer">
-                    Click here to Set New Password &rarr;
-                  </button>
-                </div>
-              )}
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Remembered password?{' '}
-                <button type="button" onClick={() => { setAuthMode('login'); setResetSent(false); }} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Back to Login
-                </button>
-              </div>
+          <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">EMAIL ADDRESS</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
             </div>
-          )}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">PASSWORD</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
+            </div>
 
-          {authMode === 'resetNew' && (
-            <form onSubmit={(e) => { e.preventDefault(); setPassword(newPassword); alert("Password updated successfully! Please login with your new password."); setAuthMode('login'); setResetSent(false); }} className="space-y-4 text-left">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">NEW PASSWORD</label>
-                <input type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-600" required />
-              </div>
-
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
-                Update Password & Login &rarr;
-              </button>
-
-              <div className="text-center pt-3 border-t border-gray-800 text-xs text-gray-400">
-                <button type="button" onClick={() => setAuthMode('login')} className="text-purple-400 font-bold hover:underline cursor-pointer">
-                  Cancel & Back to Login
-                </button>
-              </div>
-            </form>
-          )}
+            <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wide shadow-lg transition-all cursor-pointer mt-2">
+              Login to Terminal &rarr;
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -529,9 +448,7 @@ export default function App() {
                 <button onClick={() => { setShowProfileMenu(false); setShowProfileModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>👤 My Account | ID 122758</span></button>
                 <button onClick={() => { setShowProfileMenu(false); setShowFundsModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-green-400"><FiDollarSign size={13}/><span>Funds & Margin</span></button>
                 <button onClick={() => { setShowProfileMenu(false); setActiveTab('portfolio'); setPortfolioSubTab('analytics'); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiPieChart size={13}/><span>Trade Analytics Report</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("F&O and MCX segments are active for Paper Trading."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>⚡ Activate F&O, MCX</span></button>
                 <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("Help & Support: support@hokvic.gov.in"); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiHelpCircle size={13}/><span>Help & Support</span></button>
               </div>
               <div className="border-t border-gray-800 pt-1">
                 <button onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); setAuthMode('login'); localStorage.removeItem('alpha_isLoggedIn'); }} className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold cursor-pointer"><FiLogOut size={13}/><span>Logout</span></button>
@@ -543,7 +460,6 @@ export default function App() {
 
       <div className="flex-1 flex overflow-hidden relative">
         <aside className="w-80 bg-[#12141c] border-r border-gray-800 flex flex-col hidden md:flex">
-          
           <div className="bg-[#0b0e14] px-2 py-2 border-b border-gray-800 flex items-center justify-between">
             <div className="flex items-center space-x-1">
               {['1', '2', '3', '4', '5'].map(grp => (
@@ -637,11 +553,6 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="flex justify-between items-center mb-3 text-xs">
-                <span className="font-bold text-purple-400">📊 Upstox Pro Style Option Chain - {selectedOptionSymbol} (Live Fluctuation Active)</span>
-                <span className="text-gray-400">Click <strong className="text-blue-400">[B]</strong> to Buy or <strong className="text-red-400">[S]</strong> to Sell</span>
-              </div>
-
               <div className="overflow-x-auto flex-1 border border-gray-800 rounded-lg">
                 <table className="w-full text-left text-[11px] text-gray-300 border-collapse whitespace-nowrap font-mono">
                   <thead>
@@ -650,34 +561,21 @@ export default function App() {
                       <th className="p-2.5 bg-gray-900 font-bold text-amber-400">STRIKE</th>
                       <th className="p-2.5 border-l border-gray-800/60 bg-red-950/20" colSpan="10">Puts (PE)</th>
                     </tr>
-                    <tr className="bg-gray-900/90 text-gray-400 border-b border-gray-800 text-[10px]">
-                      <th className="p-2">Volume</th><th className="p-2">IV</th><th className="p-2">Vega</th><th className="p-2">Gamma</th><th className="p-2">Theta</th><th className="p-2">Delta</th><th className="p-2">OI (chg)</th><th className="p-2">OI (Lakhs)</th><th className="p-2">LTP</th><th className="p-2 border-r border-gray-800">Action</th>
-                      <th className="p-2 text-center bg-gray-900 font-bold text-amber-400">PRICE</th>
-                      <th className="p-2 border-l border-gray-800">Action</th><th className="p-2">LTP</th><th className="p-2">OI (Lakhs)</th><th className="p-2">OI (chg)</th><th className="p-2">Delta</th><th className="p-2">Theta</th><th className="p-2">Gamma</th><th className="p-2">Vega</th><th className="p-2">IV</th><th className="p-2">Volume</th>
-                    </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/60">
                     {optionRows.map((r, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/45 transition-colors text-center">
-                        <td className="p-2 text-gray-400">{r.callVol}</td><td className="p-2 text-gray-400">{r.callIV}</td><td className="p-2 text-gray-400">{r.callVega}</td><td className="p-2 text-gray-400">{r.callGamma}</td><td className="p-2 text-gray-400">{r.callTheta}</td><td className="p-2 text-gray-400">{r.callDelta}</td><td className="p-2 text-green-400">{r.callOIChg}</td><td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
-                        <td className={`p-2 font-bold font-mono transition-colors duration-300 ${r.callIsUp ? 'text-green-400 bg-green-950/20' : 'text-red-400 bg-red-950/20'}`}>
-                          ₹{r.callLTP.toFixed(2)}
-                        </td>
+                        <td className="p-2 text-gray-400">{r.callVol}</td>
+                        <td className={`p-2 font-bold font-mono ${r.callIsUp ? 'text-green-400' : 'text-red-400'}`}>₹{r.callLTP.toFixed(2)}</td>
                         <td className="p-2 border-r border-gray-800 space-x-1">
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-
                         <td className="p-2 font-bold text-white bg-gray-900/80 border-x border-gray-800 text-xs">{r.strike}</td>
-
                         <td className="p-2 border-l border-gray-800 space-x-1">
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-                        <td className={`p-2 font-bold font-mono transition-colors duration-300 ${r.putIsUp ? 'text-green-400 bg-green-950/20' : 'text-red-400 bg-red-950/20'}`}>
-                          ₹{r.putLTP.toFixed(2)}
-                        </td>
-                        <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td><td className="p-2 text-green-400">{r.putOIChg}</td><td className="p-2 text-gray-400">{r.putDelta}</td><td className="p-2 text-gray-400">{r.putTheta}</td><td className="p-2 text-gray-400">{r.putGamma}</td><td className="p-2 text-gray-400">{r.putVega}</td><td className="p-2 text-gray-400">{r.putIV}</td><td className="p-2 text-gray-400">{r.putVol}</td>
+                        <td className={`p-2 font-bold font-mono ${r.putIsUp ? 'text-green-400' : 'text-red-400'}`}>₹{r.putLTP.toFixed(2)}</td>
+                        <td className="p-2 text-gray-400">{r.putVol}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -711,7 +609,7 @@ export default function App() {
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action</th>
+                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action / Exit</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -722,9 +620,12 @@ export default function App() {
                             <td className="p-2 font-mono">₹{h.avgPrice}</td>
                             <td className="p-2 text-amber-400 font-mono">₹{h.currentVal.toFixed(2)}</td>
                             <td className={`p-2 font-bold font-mono ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
-                            <td className="p-2">
-                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer shadow">
-                                <FiShare2 size={11}/> Share P&L
+                            <td className="p-2 space-x-1.5 flex justify-center items-center">
+                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow">
+                                <FiShare2 size={11}/> Share
+                              </button>
+                              <button onClick={() => handleExitHolding(h.id)} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">
+                                Exit / Sell
                               </button>
                             </td>
                           </tr>
@@ -755,10 +656,9 @@ export default function App() {
                             <td className="p-2 font-mono">₹{p.avgPrice}</td>
                             <td className="p-2 text-amber-400 font-mono">₹{p.ltp}</td>
                             <td className={`p-2 font-bold font-mono ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
-                            <td className="p-2">
-                              <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer shadow">
-                                <FiShare2 size={11}/> Share P&L
-                              </button>
+                            <td className="p-2 space-x-1.5 flex justify-center items-center">
+                              <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Share</button>
+                              <button onClick={() => handleSquareOffPosition(p.id)} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Square Off</button>
                             </td>
                           </tr>
                         ))}
@@ -776,7 +676,7 @@ export default function App() {
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Time</th><th className="p-2">Instrument</th><th className="p-2">Qty</th><th className="p-2">Stoploss Trigger</th><th className="p-2">Target Price</th><th className="p-2">Status</th>
+                          <th className="p-2">Time</th><th className="p-2">Instrument</th><th className="p-2">Qty</th><th className="p-2">Stoploss</th><th className="p-2">Target</th><th className="p-2">Status</th><th className="p-2">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -788,6 +688,9 @@ export default function App() {
                             <td className="p-2 text-red-400 font-mono">₹{g.stoploss}</td>
                             <td className="p-2 text-green-400 font-mono">₹{g.target}</td>
                             <td className="p-2 text-amber-400 font-bold">{g.status}</td>
+                            <td className="p-2">
+                              <button onClick={() => handleCancelGtt(g.id)} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Cancel Order</button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -854,10 +757,6 @@ export default function App() {
                       <div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${winRatePercentage}%` }}></div>
                       <div className="bg-red-500 h-full transition-all duration-500" style={{ width: `${100 - parseFloat(winRatePercentage)}%` }}></div>
                     </div>
-                    <div className="flex justify-between text-[10px] text-gray-400 mt-2">
-                      <span>Wins: {winsCount} Trades</span>
-                      <span>Losses: {lossesCount} Trades</span>
-                    </div>
                   </div>
                 </div>
               )}
@@ -878,10 +777,9 @@ export default function App() {
 
             <div className="space-y-3 bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-4 font-mono">
               <div className="flex justify-between"><span className="text-gray-400 font-sans">Opening Virtual Balance:</span><span className="font-bold text-white">₹{totalFunds.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400 font-sans">Blocked Margin (Positions/Holdings):</span><span className="font-bold text-amber-400">₹{usedMargin.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400 font-sans">Unrealized Live P&L:</span><span className={`font-bold ${totalNetPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>{totalNetPnL >= 0 ? '+' : ''}₹{totalNetPnL.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400 font-sans">Blocked Margin:</span><span className="font-bold text-amber-400">₹{usedMargin.toLocaleString()}</span></div>
               <div className="border-t border-gray-800 pt-2.5 flex justify-between items-center">
-                <span className="text-gray-300 font-bold font-sans">Available Margin to Trade:</span>
+                <span className="text-gray-300 font-bold font-sans">Available Margin:</span>
                 <span className="font-bold text-green-400 text-sm">₹{(totalFunds - usedMargin + totalNetPnL).toLocaleString()}</span>
               </div>
             </div>
@@ -895,70 +793,15 @@ export default function App() {
 
       {shareCardData && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-[#1b1f2e] via-[#12141c] to-[#0b0e14] border border-purple-500/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro</span>
-              <span className="text-[10px] text-green-400 font-bold border border-green-500/30 bg-green-950/40 px-2 py-0.5 rounded">VERIFIED TRADE</span>
+          <div className="bg-[#1b1f2e] border border-purple-500/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
+            <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro</span>
+            <div className="bg-[#0b0e14] border border-gray-800 p-4 rounded-xl text-left space-y-2">
+              <p className="font-bold text-white">{shareCardData.instrument}</p>
+              <p className={`font-bold text-xl font-mono ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{shareCardData.pnl}</p>
             </div>
-
-            <div className="bg-[#0b0e14]/90 border border-gray-800 p-4 rounded-xl space-y-3 text-left">
-              <div className="flex justify-between items-center">
-                <p className="text-base font-bold text-white">{shareCardData.instrument}</p>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${shareCardData.type === 'BUY' ? 'bg-blue-600/30 text-blue-400' : 'bg-red-600/30 text-red-400'}`}>{shareCardData.type}</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 pt-2 border-t border-gray-800/80">
-                <div>
-                  <span className="block text-[10px]">QUANTITY</span>
-                  <strong className="text-gray-200">{shareCardData.qty}</strong>
-                </div>
-                <div className="text-right">
-                  <span className="block text-[10px]">AVG ENTRY PRICE</span>
-                  <strong className="text-gray-200 font-mono">₹{shareCardData.avgPrice}</strong>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-gray-800/80 text-center">
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider block">Total Profit & Loss</span>
-                <span className={`font-bold text-2xl font-mono ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {shareCardData.pnl}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[10px] text-gray-500">Trader: Prashant Kamble (ID: 122758) • AlphaTrade Virtual Terminal</p>
-
-            <div className="flex space-x-2 pt-1">
-              <button onClick={() => { navigator.clipboard?.writeText(`AlphaTrade Pro P&L | ${shareCardData.instrument} | P&L: ${shareCardData.pnl}`); alert("P&L Summary copied to clipboard!"); setShareCardData(null); }} className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer shadow-lg">
-                📋 Copy Trade Report
-              </button>
-              <button onClick={() => setShareCardData(null)} className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs cursor-pointer">
-                Close
-              </button>
-            </div>
+            <button onClick={() => setShareCardData(null)} className="w-full py-2 rounded-lg bg-purple-600 text-white font-bold text-xs cursor-pointer">Close</button>
           </div>
         </div>
-      )}
-
-      {showTokenModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-base font-bold text-amber-400 mb-2">🔑 Set Upstox Access Token</h3>
-            <input type="text" placeholder="Paste Upstox Access Token..." value={upstoxToken} onChange={(e) => setUpstoxToken(e.target.value)} className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg p-2.5 text-xs text-gray-200 mb-4 focus:outline-none focus:border-purple-600" />
-            <div className="flex justify-end space-x-2">
-              <button onClick={() => setShowTokenModal(false)} className="px-4 py-1.5 rounded text-xs bg-gray-800 text-gray-300 cursor-pointer">Cancel</button>
-              <button onClick={handleSaveToken} className="px-4 py-1.5 rounded text-xs bg-purple-600 text-white font-bold cursor-pointer">Save & Connect</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showProfileModal && (
-        <ProfileModal email={email} onClose={() => setShowProfileModal(false)} onLogout={() => { setIsLoggedIn(false); setShowProfileModal(false); localStorage.removeItem('alpha_isLoggedIn'); }} />
-      )}
-
-      {showFeedbackModal && (
-        <FeedbackModal onClose={() => setShowFeedbackModal(false)} />
       )}
 
       {selectedOrderStock && (
