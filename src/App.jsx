@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown, FiPlus } from 'react-icons/fi';
+import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
 import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
@@ -36,7 +36,7 @@ export default function App() {
   });
   
   const [authMode, setAuthMode] = useState('login'); 
-  const [activeTab, setActiveTab] = useState('chart');
+  const [activeTab, setActiveTab] = useState('optionChain');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
@@ -178,10 +178,11 @@ export default function App() {
     setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
-  // लाईव्ह प्राईस फ्लक्चुएशन आणि % बदल रिअल-टाईम अपडेट
+  // लाईव्ह प्राईस फ्लक्चुएशन आणि Option Chain LTP फ्लक्चुएशन रिअल-टाईम अपडेट
   useEffect(() => {
     if (!isLoggedIn) return;
     const timer = setInterval(() => {
+      // 1. Watchlist Stocks Update
       setWatchlistGroups(prevGroups => {
         const updated = { ...prevGroups };
         Object.keys(updated).forEach(grpKey => {
@@ -189,7 +190,8 @@ export default function App() {
             const delta = (Math.random() - 0.48) * (stock.price * 0.0015);
             const newPrice = parseFloat((stock.price + delta).toFixed(2));
             const newChangeNum = parseFloat((stock.changeNum + delta).toFixed(2));
-            const newChangePct = parseFloat(((newChangeNum / (newPrice - newChangeNum)) * 100).toFixed(2));
+            const baseOrig = newPrice - newChangeNum;
+            const newChangePct = baseOrig !== 0 ? parseFloat(((newChangeNum / baseOrig) * 100).toFixed(2)) : 0.00;
             return {
               ...stock,
               price: newPrice,
@@ -204,6 +206,24 @@ export default function App() {
         return updated;
       });
 
+      // 2. Option Chain Calls (CE) & Puts (PE) LTP Fluctuation
+      setOptionRows(prevRows =>
+        prevRows.map(row => {
+          const callDelta = (Math.random() - 0.47) * 4.5;
+          const putDelta = (Math.random() - 0.47) * 4.5;
+          const newCallLTP = Math.max(2.00, parseFloat((row.callLTP + callDelta).toFixed(2)));
+          const newPutLTP = Math.max(2.00, parseFloat((row.putLTP + putDelta).toFixed(2)));
+          return {
+            ...row,
+            callLTP: newCallLTP,
+            putLTP: newPutLTP,
+            callIsUp: callDelta >= 0,
+            putIsUp: putDelta >= 0
+          };
+        })
+      );
+
+      // 3. Positions PnL Update
       setPositions(prevPos =>
         prevPos.map(pos => {
           const priceChange = (Math.random() - 0.48) * 4;
@@ -219,6 +239,7 @@ export default function App() {
         })
       );
 
+      // 4. Holdings PnL Update
       setHoldings(prevHold =>
         prevHold.map(h => {
           const priceChange = (Math.random() - 0.48) * 3;
@@ -261,7 +282,7 @@ export default function App() {
     const baseP = stockBasePrices[sym] || 1500.00;
     const newStockObj = {
       name: sym,
-      exchange: sym.includes('NIFTY') || sym.includes('BANK') ? 'NSE EQ' : 'NSE EQ',
+      exchange: 'NSE EQ',
       price: baseP,
       changeNum: 2.50,
       changePct: 0.15,
@@ -521,10 +542,8 @@ export default function App() {
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Upstox Style Watchlist Sidebar with Groups (1, 2, 3, 4, 5) */}
         <aside className="w-80 bg-[#12141c] border-r border-gray-800 flex flex-col hidden md:flex">
           
-          {/* Watchlist Group Tabs (1, 2, 3, 4, 5) */}
           <div className="bg-[#0b0e14] px-2 py-2 border-b border-gray-800 flex items-center justify-between">
             <div className="flex items-center space-x-1">
               {['1', '2', '3', '4', '5'].map(grp => (
@@ -619,7 +638,7 @@ export default function App() {
               </div>
 
               <div className="flex justify-between items-center mb-3 text-xs">
-                <span className="font-bold text-purple-400">📊 Upstox Pro Style Option Chain - {selectedOptionSymbol}</span>
+                <span className="font-bold text-purple-400">📊 Upstox Pro Style Option Chain - {selectedOptionSymbol} (Live Fluctuation Active)</span>
                 <span className="text-gray-400">Click <strong className="text-blue-400">[B]</strong> to Buy or <strong className="text-red-400">[S]</strong> to Sell</span>
               </div>
 
@@ -641,7 +660,9 @@ export default function App() {
                     {optionRows.map((r, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/45 transition-colors text-center">
                         <td className="p-2 text-gray-400">{r.callVol}</td><td className="p-2 text-gray-400">{r.callIV}</td><td className="p-2 text-gray-400">{r.callVega}</td><td className="p-2 text-gray-400">{r.callGamma}</td><td className="p-2 text-gray-400">{r.callTheta}</td><td className="p-2 text-gray-400">{r.callDelta}</td><td className="p-2 text-green-400">{r.callOIChg}</td><td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
-                        <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.callLTP.toFixed(2)}</td>
+                        <td className={`p-2 font-bold font-mono transition-colors duration-300 ${r.callIsUp ? 'text-green-400 bg-green-950/20' : 'text-red-400 bg-red-950/20'}`}>
+                          ₹{r.callLTP.toFixed(2)}
+                        </td>
                         <td className="p-2 border-r border-gray-800 space-x-1">
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
@@ -653,7 +674,9 @@ export default function App() {
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
                           <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-                        <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.putLTP.toFixed(2)}</td>
+                        <td className={`p-2 font-bold font-mono transition-colors duration-300 ${r.putIsUp ? 'text-green-400 bg-green-950/20' : 'text-red-400 bg-red-950/20'}`}>
+                          ₹{r.putLTP.toFixed(2)}
+                        </td>
                         <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td><td className="p-2 text-green-400">{r.putOIChg}</td><td className="p-2 text-gray-400">{r.putDelta}</td><td className="p-2 text-gray-400">{r.putTheta}</td><td className="p-2 text-gray-400">{r.putGamma}</td><td className="p-2 text-gray-400">{r.putVega}</td><td className="p-2 text-gray-400">{r.putIV}</td><td className="p-2 text-gray-400">{r.putVol}</td>
                       </tr>
                     ))}
