@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FiMaximize2, FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
 import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
@@ -42,7 +42,6 @@ export default function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showFundsModal, setShowFundsModal] = useState(false);
-  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [shareCardData, setShareCardData] = useState(null);
 
   const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
@@ -140,7 +139,6 @@ export default function App() {
     setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
-  // लाईव्ह प्राईस फ्लक्चुएशन आणि P&L लाईव्ह अपडेट
   useEffect(() => {
     if (!isLoggedIn) return;
     const timer = setInterval(() => {
@@ -269,10 +267,15 @@ export default function App() {
     }
   };
 
-  // Trade Analytics calculation
+  // Trade Analytics Calculations
+  const allActiveTrades = [...holdings, ...positions];
   const totalTradesCount = orderHistory.length;
-  const profitableTrades = [...holdings, ...positions].filter(item => item.pnlVal >= 0).length;
-  const winRatePercentage = totalTradesCount > 0 ? ((profitableTrades / (totalTradesCount || 1)) * 100).toFixed(1) : '0.0';
+  const winsCount = allActiveTrades.filter(item => item.pnlVal > 0).length;
+  const lossesCount = allActiveTrades.filter(item => item.pnlVal < 0).length;
+  const totalNetPnL = allActiveTrades.reduce((acc, item) => acc + item.pnlVal, 0);
+  const winRatePercentage = (winsCount + lossesCount) > 0 
+    ? ((winsCount / (winsCount + lossesCount)) * 100).toFixed(1) 
+    : (totalTradesCount > 0 ? '100.0' : '0.0');
 
   if (!isLoggedIn) {
     return (
@@ -397,7 +400,6 @@ export default function App() {
               </div>
             </form>
           )}
-
         </div>
       </div>
     );
@@ -416,10 +418,10 @@ export default function App() {
           <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-lg text-sm tracking-wide shadow-md">
             AlphaTrade Pro
           </span>
-          <button onClick={() => setShowFundsModal(true)} className="bg-gray-800 hover:bg-gray-700 text-green-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer">
+          <button onClick={() => setShowFundsModal(true)} className="bg-gray-800 hover:bg-gray-700 border border-green-500/30 text-green-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
             <FiDollarSign size={13}/> Funds: ₹{(totalFunds - usedMargin).toLocaleString()}
           </button>
-          <button onClick={() => setShowAnalyticsModal(true)} className="bg-gray-800 hover:bg-gray-700 text-purple-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer">
+          <button onClick={() => { setActiveTab('portfolio'); setPortfolioSubTab('analytics'); }} className="bg-gray-800 hover:bg-gray-700 border border-purple-500/30 text-purple-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
             <FiPieChart size={13}/> Analytics (Win: {winRatePercentage}%)
           </button>
         </div>
@@ -450,10 +452,10 @@ export default function App() {
               </div>
               <div className="py-1 text-gray-300">
                 <button onClick={() => { setShowProfileMenu(false); setShowProfileModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>👤 My Account | ID 122758</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("F&O and MCX segments are active for Paper Trading."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-green-400"><span>⚡ Activate F&O, MCX</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("Opening My Reports..."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiFileText size={13}/><span>My Reports</span></button>
-                <button onClick={() => { setShowProfileMenu(false); alert("Settings panel open."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiSettings size={13}/><span>Settings</span></button>
-                <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
+                <button onClick={() => { setShowProfileMenu(false); setShowFundsModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-green-400"><FiDollarSign size={13}/><span>Funds & Margin</span></button>
+                <button onClick={() => { setShowProfileMenu(false); setActiveTab('portfolio'); setPortfolioSubTab('analytics'); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiPieChart size={13}/><span>Trade Analytics Report</span></button>
+                <button onClick={() => { setShowProfileMenu(false); alert("F&O and MCX segments are active for Paper Trading."); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>⚡ Activate F&O, MCX</span></button>
+                <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
                 <button onClick={() => { setShowProfileMenu(false); alert("Help & Support: support@hokvic.gov.in"); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiHelpCircle size={13}/><span>Help & Support</span></button>
               </div>
               <div className="border-t border-gray-800 pt-1">
@@ -581,12 +583,19 @@ export default function App() {
 
           {activeTab === 'portfolio' && (
             <div className="flex-1 bg-[#12141c] border border-gray-800 rounded-xl p-4 flex flex-col text-xs text-white">
-              <h2 className="text-sm font-bold mb-3">Portfolio, Positions & GTT Orders Log</h2>
-              <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-3">
-                <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer ${portfolioSubTab === 'holdings' ? 'text-purple-400' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
-                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer ${portfolioSubTab === 'positions' ? 'text-purple-400' : 'text-gray-400'}`}>Positions ({positions.length})</button>
-                <button onClick={() => setPortfolioSubTab('gtt')} className={`font-bold cursor-pointer ${portfolioSubTab === 'gtt' ? 'text-purple-400' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
-                <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer ${portfolioSubTab === 'history' ? 'text-purple-400' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-sm font-bold">Portfolio, Positions, GTT & Trade Analytics</h2>
+                <span className={`font-bold px-2.5 py-1 rounded ${totalNetPnL >= 0 ? 'bg-green-950/60 text-green-400 border border-green-500/30' : 'bg-red-950/60 text-red-400 border border-red-500/30'}`}>
+                  Net Live P&L: {totalNetPnL >= 0 ? '+' : ''}₹{totalNetPnL.toFixed(2)}
+                </span>
+              </div>
+
+              <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-4 overflow-x-auto whitespace-nowrap">
+                <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'holdings' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
+                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'positions' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Positions ({positions.length})</button>
+                <button onClick={() => setPortfolioSubTab('gtt')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'gtt' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
+                <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'history' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
+                <button onClick={() => setPortfolioSubTab('analytics')} className={`font-bold cursor-pointer pb-1 flex items-center gap-1 ${portfolioSubTab === 'analytics' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}><FiPieChart size={12}/> Trade Analytics Report</button>
               </div>
 
               {portfolioSubTab === 'holdings' && (
@@ -602,14 +611,14 @@ export default function App() {
                       </thead>
                       <tbody>
                         {holdings.map(h => (
-                          <tr key={h.id} className="border-b border-gray-800">
+                          <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/30">
                             <td className="p-2 font-bold">{h.instrument}</td>
                             <td className="p-2">{h.qty}</td>
-                            <td className="p-2">₹{h.avgPrice}</td>
-                            <td className="p-2 text-amber-400">₹{h.currentVal.toFixed(2)}</td>
-                            <td className={`p-2 font-bold ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
+                            <td className="p-2 font-mono">₹{h.avgPrice}</td>
+                            <td className="p-2 text-amber-400 font-mono">₹{h.currentVal.toFixed(2)}</td>
+                            <td className={`p-2 font-bold font-mono ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
                             <td className="p-2">
-                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer">
+                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer shadow">
                                 <FiShare2 size={11}/> Share P&L
                               </button>
                             </td>
@@ -634,15 +643,15 @@ export default function App() {
                       </thead>
                       <tbody>
                         {positions.map(p => (
-                          <tr key={p.id} className="border-b border-gray-800">
+                          <tr key={p.id} className="border-b border-gray-800 hover:bg-gray-800/30">
                             <td className="p-2 font-bold">{p.instrument}</td>
                             <td className={`p-2 font-bold ${p.type === 'BUY' ? 'text-blue-400' : 'text-red-400'}`}>{p.type}</td>
                             <td className="p-2">{p.qty}</td>
-                            <td className="p-2">₹{p.avgPrice}</td>
-                            <td className="p-2 text-amber-400">₹{p.ltp}</td>
-                            <td className={`p-2 font-bold ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
+                            <td className="p-2 font-mono">₹{p.avgPrice}</td>
+                            <td className="p-2 text-amber-400 font-mono">₹{p.ltp}</td>
+                            <td className={`p-2 font-bold font-mono ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
                             <td className="p-2">
-                              <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer">
+                              <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer shadow">
                                 <FiShare2 size={11}/> Share P&L
                               </button>
                             </td>
@@ -671,8 +680,8 @@ export default function App() {
                             <td className="p-2 text-gray-400">{g.time}</td>
                             <td className="p-2 font-bold text-white">{g.instrument}</td>
                             <td className="p-2">{g.qty}</td>
-                            <td className="p-2 text-red-400">₹{g.stoploss}</td>
-                            <td className="p-2 text-green-400">₹{g.target}</td>
+                            <td className="p-2 text-red-400 font-mono">₹{g.stoploss}</td>
+                            <td className="p-2 text-green-400 font-mono">₹{g.target}</td>
                             <td className="p-2 text-amber-400 font-bold">{g.status}</td>
                           </tr>
                         ))}
@@ -700,7 +709,7 @@ export default function App() {
                             <td className="p-2 font-bold text-white">{ord.instrument}</td>
                             <td className={`p-2 font-bold ${ord.type === 'BUY' ? 'text-blue-400' : 'text-red-400'}`}>{ord.type}</td>
                             <td className="p-2">{ord.qty}</td>
-                            <td className="p-2 text-amber-400">₹{ord.avgPrice}</td>
+                            <td className="p-2 text-amber-400 font-mono">₹{ord.avgPrice}</td>
                             <td className="p-2 text-green-400 font-bold">{ord.status}</td>
                           </tr>
                         ))}
@@ -709,40 +718,74 @@ export default function App() {
                   )}
                 </div>
               )}
+
+              {/* Trade Analytics Report Tab */}
+              {portfolioSubTab === 'analytics' && (
+                <div className="flex-1 space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-[#0b0e14] border border-gray-800 p-4 rounded-xl">
+                      <span className="text-gray-400 text-[10px] uppercase">Total Executed Trades</span>
+                      <p className="text-xl font-bold text-white mt-1">{totalTradesCount}</p>
+                    </div>
+                    <div className="bg-[#0b0e14] border border-green-900/40 p-4 rounded-xl">
+                      <span className="text-gray-400 text-[10px] uppercase flex items-center gap-1"><FiTrendingUp className="text-green-400"/> Profitable Wins</span>
+                      <p className="text-xl font-bold text-green-400 mt-1">{winsCount}</p>
+                    </div>
+                    <div className="bg-[#0b0e14] border border-red-900/40 p-4 rounded-xl">
+                      <span className="text-gray-400 text-[10px] uppercase flex items-center gap-1"><FiTrendingDown className="text-red-400"/> Losses</span>
+                      <p className="text-xl font-bold text-red-400 mt-1">{lossesCount}</p>
+                    </div>
+                    <div className="bg-[#0b0e14] border border-purple-900/40 p-4 rounded-xl">
+                      <span className="text-gray-400 text-[10px] uppercase flex items-center gap-1"><FiAward className="text-purple-400"/> Win / Loss Ratio</span>
+                      <p className="text-xl font-bold text-purple-400 mt-1">{winRatePercentage}%</p>
+                    </div>
+                  </div>
+
+                  {/* Win Rate Visual Bar */}
+                  <div className="bg-[#0b0e14] border border-gray-800 p-4 rounded-xl">
+                    <div className="flex justify-between text-xs mb-2">
+                      <span className="font-bold text-gray-300">Performance Accuracy Meter</span>
+                      <span className="font-bold text-purple-400">{winRatePercentage}% Win Rate</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden flex">
+                      <div className="bg-green-500 h-full transition-all duration-500" style={{ width: `${winRatePercentage}%` }}></div>
+                      <div className="bg-red-500 h-full transition-all duration-500" style={{ width: `${100 - parseFloat(winRatePercentage)}%` }}></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-gray-400 mt-2">
+                      <span>Wins: {winsCount} Trades</span>
+                      <span>Losses: {lossesCount} Trades</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
       </div>
 
-      {/* Funds Dashboard Modal */}
+      {/* Funds & Margin Management Dashboard Modal */}
       {showFundsModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl font-sans text-xs">
-            <h3 className="text-base font-bold text-green-400 mb-4 flex items-center gap-2"><FiDollarSign/> Funds & Margin Dashboard</h3>
-            <div className="space-y-3 bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-4">
-              <div className="flex justify-between"><span className="text-gray-400">Total Virtual Capital:</span><span className="font-bold text-white">₹{totalFunds.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">Used Margin (Open Trades):</span><span className="font-bold text-amber-400">₹{usedMargin.toLocaleString()}</span></div>
-              <div className="border-t border-gray-800 pt-2 flex justify-between"><span className="text-gray-400 font-bold">Available Trading Balance:</span><span className="font-bold text-green-400">₹{(totalFunds - usedMargin).toLocaleString()}</span></div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold text-green-400 flex items-center gap-2"><FiDollarSign/> Funds & Margin Dashboard</h3>
+              <button onClick={() => setTotalFunds(prev => prev + 100000)} className="bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-300 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer">
+                <FiPlusCircle size={12}/> + Add ₹1,00,000
+              </button>
             </div>
+
+            <div className="space-y-3 bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-4 font-mono">
+              <div className="flex justify-between"><span className="text-gray-400 font-sans">Opening Virtual Balance:</span><span className="font-bold text-white">₹{totalFunds.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400 font-sans">Blocked Margin (Positions/Holdings):</span><span className="font-bold text-amber-400">₹{usedMargin.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400 font-sans">Unrealized Live P&L:</span><span className={`font-bold ${totalNetPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>{totalNetPnL >= 0 ? '+' : ''}₹{totalNetPnL.toFixed(2)}</span></div>
+              <div className="border-t border-gray-800 pt-2.5 flex justify-between items-center">
+                <span className="text-gray-300 font-bold font-sans">Available Margin to Trade:</span>
+                <span className="font-bold text-green-400 text-sm">₹{(totalFunds - usedMargin + totalNetPnL).toLocaleString()}</span>
+              </div>
+            </div>
+
             <div className="flex justify-end">
               <button onClick={() => setShowFundsModal(false)} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer">Close Dashboard</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Trade Analytics Modal */}
-      {showAnalyticsModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl font-sans text-xs">
-            <h3 className="text-base font-bold text-purple-400 mb-4 flex items-center gap-2"><FiPieChart/> Trade Analytics & Win Rate</h3>
-            <div className="space-y-3 bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-4">
-              <div className="flex justify-between"><span className="text-gray-400">Total Executed Orders:</span><span className="font-bold text-white">{totalTradesCount}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">Profitable Trades:</span><span className="font-bold text-green-400">{profitableTrades}</span></div>
-              <div className="border-t border-gray-800 pt-2 flex justify-between"><span className="text-gray-400 font-bold">Win Rate Percentage:</span><span className="font-bold text-purple-400 text-sm">{winRatePercentage}%</span></div>
-            </div>
-            <div className="flex justify-end">
-              <button onClick={() => setShowAnalyticsModal(false)} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer">Close Analytics</button>
             </div>
           </div>
         </div>
@@ -751,23 +794,46 @@ export default function App() {
       {/* Share P&L Screenshot Card Modal */}
       {shareCardData && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-[#181b25] to-[#0b0e14] border border-purple-500/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
-            <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro - Verified P&L</span>
-            <div className="bg-[#12141c] border border-gray-800 p-4 rounded-xl space-y-2 text-left">
-              <p className="text-sm font-bold text-white">{shareCardData.instrument}</p>
-              <div className="flex justify-between text-xs text-gray-400">
-                <span>Type: <strong className="text-blue-400">{shareCardData.type}</strong></span>
-                <span>Qty: <strong>{shareCardData.qty}</strong></span>
+          <div className="bg-gradient-to-br from-[#1b1f2e] via-[#12141c] to-[#0b0e14] border border-purple-500/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro</span>
+              <span className="text-[10px] text-green-400 font-bold border border-green-500/30 bg-green-950/40 px-2 py-0.5 rounded">VERIFIED TRADE</span>
+            </div>
+
+            <div className="bg-[#0b0e14]/90 border border-gray-800 p-4 rounded-xl space-y-3 text-left">
+              <div className="flex justify-between items-center">
+                <p className="text-base font-bold text-white">{shareCardData.instrument}</p>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${shareCardData.type === 'BUY' ? 'bg-blue-600/30 text-blue-400' : 'bg-red-600/30 text-red-400'}`}>{shareCardData.type}</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-400 pt-2 border-t border-gray-800">
-                <span>Avg Price: ₹{shareCardData.avgPrice}</span>
-                <span className={`font-bold text-sm ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>P&L: {shareCardData.pnl}</span>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 pt-2 border-t border-gray-800/80">
+                <div>
+                  <span className="block text-[10px]">QUANTITY</span>
+                  <strong className="text-gray-200">{shareCardData.qty}</strong>
+                </div>
+                <div className="text-right">
+                  <span className="block text-[10px]">AVG ENTRY PRICE</span>
+                  <strong className="text-gray-200 font-mono">₹{shareCardData.avgPrice}</strong>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-gray-800/80 text-center">
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider block">Total Profit & Loss</span>
+                <span className={`font-bold text-2xl font-mono ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {shareCardData.pnl}
+                </span>
               </div>
             </div>
-            <p className="text-[10px] text-gray-500">Traded on AlphaTrade Pro Paper Trading Platform</p>
-            <div className="flex space-x-2 pt-2">
-              <button onClick={() => { alert("P&L Card copied to clipboard!"); setShareCardData(null); }} className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer">📋 Copy Card</button>
-              <button onClick={() => setShareCardData(null)} className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs cursor-pointer">Close</button>
+
+            <p className="text-[10px] text-gray-500">Trader: Prashant Kamble (ID: 122758) • AlphaTrade Virtual Terminal</p>
+
+            <div className="flex space-x-2 pt-1">
+              <button onClick={() => { navigator.clipboard?.writeText(`AlphaTrade Pro P&L | ${shareCardData.instrument} | P&L: ${shareCardData.pnl}`); alert("P&L Summary copied to clipboard!"); setShareCardData(null); }} className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer shadow-lg">
+                📋 Copy Trade Report
+              </button>
+              <button onClick={() => setShareCardData(null)} className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs cursor-pointer">
+                Close
+              </button>
             </div>
           </div>
         </div>
