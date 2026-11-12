@@ -488,7 +488,7 @@ export default function App() {
         <span>Paper Trading (Virtual Funds Only) — No Real Money Involved</span>
       </div>
 
-      <header className="bg-[#12141c] border-b border-gray-800 px-4 py-2 flex items-center justify-between sticky top-0 z-40 shadow-lg">
+      <header className="bg-[#12141c] border-b border-gray-800 px-4 py-2 flex items-center justify-between sticky top-0 z-50 shadow-lg">
         <div className="flex items-center space-x-3">
           <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-lg text-sm tracking-wide shadow-md">
             AlphaTrade Pro
@@ -507,14 +507,23 @@ export default function App() {
           <button onClick={() => setActiveTab('portfolio')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Portfolio & History</button>
         </nav>
 
-        <div className="flex items-center space-x-3 relative">
+        <div className="flex items-center space-x-3 relative z-50">
           {isUpstoxConnected ? (
             <div className="flex items-center space-x-1.5 bg-green-950/60 border border-green-500/40 px-3 py-1 rounded-lg text-xs">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
               <span className="text-green-400 font-bold">Upstox Connected</span>
             </div>
           ) : (
-            <button onClick={() => setShowTokenModal(true)} className="bg-amber-600/20 border border-amber-600/50 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-600/30 transition-all cursor-pointer">🔑 Set Upstox Token</button>
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTokenModal(true);
+              }} 
+              className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all cursor-pointer"
+            >
+              🔑 Set Upstox Token
+            </button>
           )}
 
           <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all">PK</button>
@@ -891,9 +900,9 @@ export default function App() {
         </main>
       </div>
 
-      {/* **UPSTOX TOKEN MODAL (Fix for Set Upstox Token button)** */}
+      {/* **UPSTOX TOKEN MODAL POPUP** */}
       {showTokenModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-xs space-y-4">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
