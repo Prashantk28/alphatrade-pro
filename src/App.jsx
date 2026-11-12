@@ -32,10 +32,9 @@ const stockBasePrices = {
 };
 
 export default function App() {
-  // Always start with false so Login page appears first on fresh load / logout
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  const [authMode, setAuthMode] = useState('login'); // login, register, forgot, resetNew
+  const [authMode, setAuthMode] = useState('login'); 
   const [activeTab, setActiveTab] = useState('optionChain');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
@@ -891,6 +890,39 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* **UPSTOX TOKEN MODAL (Fix for Set Upstox Token button)** */}
+      {showTokenModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-xs space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <span>🔑 Enter Upstox Access Token</span>
+              </h3>
+              <button onClick={() => setShowTokenModal(false)} className="text-gray-400 hover:text-white cursor-pointer"><FiX size={16}/></button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-gray-400 text-[11px]">Paste your Upstox API Access Token below to fetch live market feeds and execute live simulated orders.</p>
+              <div>
+                <label className="text-gray-400 block mb-1">Access Token</label>
+                <input 
+                  type="text" 
+                  placeholder="Paste token here..." 
+                  value={upstoxToken} 
+                  onChange={(e) => setUpstoxToken(e.target.value)} 
+                  className="w-full bg-[#0b0e14] border border-gray-800 rounded px-3 py-2 text-white font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-2 pt-2">
+              <button onClick={() => setShowTokenModal(false)} className="flex-1 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold cursor-pointer">Cancel</button>
+              <button onClick={handleSaveToken} className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer shadow-lg">Save & Connect</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {exitModalData && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
