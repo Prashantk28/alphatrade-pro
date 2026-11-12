@@ -35,15 +35,16 @@ export default function App() {
     return localStorage.getItem('alpha_isLoggedIn') === 'true';
   });
   
-  const [authMode, setAuthMode] = useState('login'); // login, register, forgot, resetNew
-  const [activeTab, setActiveTab] = useState('chart');
+  const [authMode, setAuthMode] = useState('login'); 
+  const [activeTab, setActiveTab] = useState('optionChain');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
   const [activeWatchlistGroup, setActiveWatchlistGroup] = useState('1');
   const [watchlistSearch, setWatchlistSearch] = useState('');
   const [newStockInput, setNewStockInput] = useState('');
-  const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('NIFTY');
+  const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('SENSEX');
+  const [selectedExpiry, setSelectedExpiry] = useState('12 Nov 2026');
 
   const [isUpstoxConnected, setIsUpstoxConnected] = useState(() => {
     return localStorage.getItem('alpha_upstoxConnected') === 'true';
@@ -58,7 +59,7 @@ export default function App() {
   const [shareCardData, setShareCardData] = useState(null);
   const [exitModalData, setExitModalData] = useState(null);
 
-  const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
+  const [portfolioSubTab, setPortfolioSubTab] = useState('positions');
   const [positions, setPositions] = useState([]);
   const [holdings, setHoldings] = useState([]);
   const [orderHistory, setOrderHistory] = useState([]);
@@ -80,25 +81,25 @@ export default function App() {
     }
     return {
       '1': [
-        { name: 'EXIDEIND', exchange: 'NSE EQ', price: 381.45, changeNum: -4.50, changePct: -1.17, isUp: false, high: 384.00, low: 378.50 },
-        { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.05, changePct: -1.82, isUp: false, high: 108.00, low: 104.00 },
-        { name: 'PVRINOX', exchange: 'NSE EQ', price: 1597.70, changeNum: 14.30, changePct: 0.90, isUp: true, high: 1610.00, low: 1580.00 },
-        { name: 'PNB', exchange: 'NSE EQ', price: 139.83, changeNum: 1.35, changePct: 0.97, isUp: true, high: 142.00, low: 138.00 },
-        { name: 'PCBL', exchange: 'NSE EQ', price: 288.55, changeNum: 8.00, changePct: 2.85, isUp: true, high: 292.00, low: 280.00 },
-        { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.11, changeNum: 0.00, changePct: 0.00, isUp: true, high: 1.15, low: 1.10 },
-        { name: 'ONGC', exchange: 'NSE EQ', price: 226.18, changeNum: -8.62, changePct: -3.67, isUp: false, high: 235.00, low: 224.00 },
-        { name: 'CIPLA', exchange: 'NSE EQ', price: 1409.60, changeNum: -10.30, changePct: -0.73, isUp: false, high: 1425.00, low: 1400.00 },
-        { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.80, changeNum: 1.57, changePct: 1.96, isUp: true, high: 83.00, low: 80.00 },
-        { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.70, changeNum: 28.00, changePct: 2.50, isUp: true, high: 1160.00, low: 1120.00 },
-        { name: 'TECHM', exchange: 'NSE EQ', price: 1779.10, changeNum: -9.40, changePct: -0.53, isUp: false, high: 1795.00, low: 1770.00 },
+        { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.07, changePct: -0.55, isUp: false, high: 108.00, low: 104.00 },
+        { name: 'EXIDEIND', exchange: 'NSE EQ', price: 382.00, changeNum: -3.95, changePct: -1.02, isUp: false, high: 384.00, low: 378.50 },
+        { name: 'PVRINOX', exchange: 'NSE EQ', price: 1591.00, changeNum: 7.60, changePct: 0.48, isUp: true, high: 1610.00, low: 1580.00 },
+        { name: 'PNB', exchange: 'NSE EQ', price: 139.60, changeNum: 1.12, changePct: 0.81, isUp: true, high: 142.00, low: 138.00 },
+        { name: 'PCBL', exchange: 'NSE EQ', price: 286.30, changeNum: 5.75, changePct: 2.05, isUp: true, high: 292.00, low: 280.00 },
+        { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.10, changeNum: -0.01, changePct: -0.90, isUp: false, high: 1.15, low: 1.10 },
+        { name: 'ONGC', exchange: 'NSE EQ', price: 225.45, changeNum: -9.35, changePct: -3.98, isUp: false, high: 235.00, low: 224.00 },
+        { name: 'CIPLA', exchange: 'NSE EQ', price: 1404.00, changeNum: -15.90, changePct: -1.12, isUp: false, high: 1425.00, low: 1400.00 },
+        { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.03, changeNum: 0.80, changePct: 1.00, isUp: true, high: 83.00, low: 80.00 },
+        { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.40, changeNum: 27.70, changePct: 2.47, isUp: true, high: 1160.00, low: 1120.00 },
+        { name: 'TECHM', exchange: 'NSE EQ', price: 1772.40, changeNum: -16.10, changePct: -0.90, isUp: false, high: 1795.00, low: 1770.00 },
         { name: 'SPENCERS', exchange: 'NSE EQ', price: 22.85, changeNum: 1.08, changePct: 4.96, isUp: true, high: 23.50, low: 21.50 },
-        { name: 'COALINDIA', exchange: 'NSE EQ', price: 403.35, changeNum: -2.95, changePct: -0.73, isUp: false, high: 410.00, low: 400.00 },
-        { name: 'HINDZINC', exchange: 'NSE EQ', price: 571.60, changeNum: -7.40, changePct: -1.28, isUp: false, high: 585.00, low: 568.00 }
+        { name: 'COALINDIA', exchange: 'NSE EQ', price: 402.90, changeNum: -3.40, changePct: -0.84, isUp: false, high: 410.00, low: 400.00 },
+        { name: 'HINDZINC', exchange: 'NSE EQ', price: 567.80, changeNum: -11.20, changePct: -1.93, isUp: false, high: 585.00, low: 568.00 }
       ],
       '2': [
         { name: 'NIFTY 50', exchange: 'NSE EQ', price: 24893.03, changeNum: 1.26, changePct: 0.01, isUp: true, high: 25050.00, low: 24780.00 },
-        { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 47595.12, changeNum: -0.81, changePct: -0.01, isUp: false, high: 48100.00, low: 47400.00 },
-        { name: 'RELIANCE', exchange: 'NSE EQ', price: 2973.10, changeNum: 0.02, changePct: 0.00, isUp: true, high: 2995.00, low: 2950.00 }
+        { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 61104.90, changeNum: 312.50, changePct: 0.51, isUp: true, high: 61300.00, low: 60800.00 },
+        { name: 'SENSEX', exchange: 'BSE X', price: 81840.23, changeNum: -39.17, changePct: -0.05, isUp: false, high: 82100.00, low: 81500.00 }
       ],
       '3': [
         { name: 'TCS', exchange: 'NSE EQ', price: 3942.49, changeNum: 0.41, changePct: 0.00, isUp: true, high: 3970.00, low: 3920.00 },
@@ -125,12 +126,13 @@ export default function App() {
   const currentGroupStocks = watchlistGroups[activeWatchlistGroup] || [];
   const currentStockObj = currentGroupStocks.find(s => s.name === selectedStock) || currentGroupStocks[0] || { name: 'EXIDEIND', price: 381.45, high: 384, low: 378 };
 
-  const optionSymbols = ['NIFTY', 'SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'CRUDEOIL', 'NATURALGAS', 'GOLD', 'SILVER'];
-  
+  const optionSymbols = ['NIFTY 50', 'BANKNIFTY', 'SENSEX', 'FINNIFTY', 'MIDCPNIFTY', 'CRUDEOIL', 'NATURALGAS', 'GOLD', 'SILVER'];
+  const expiryDates = ['12 Nov 2026', '19 Nov 2026', '26 Nov 2026', '03 Dec 2026', '10 Dec 2026', '17 Dec 2026', '24 Dec 2026'];
+
   const symbolBasePrices = {
-    'NIFTY': 24900,
-    'SENSEX': 81200,
-    'BANKNIFTY': 52100,
+    'NIFTY 50': 24900,
+    'SENSEX': 81840,
+    'BANKNIFTY': 61104,
     'FINNIFTY': 23400,
     'MIDCPNIFTY': 12500,
     'CRUDEOIL': 6150,
@@ -139,40 +141,40 @@ export default function App() {
     'SILVER': 91200
   };
 
-  const getDynamicOptionRows = (sym) => {
-    const base = symbolBasePrices[sym] || 10000;
-    const step = sym === 'GOLD' ? 500 : sym === 'SILVER' ? 1000 : sym === 'CRUDEOIL' ? 100 : sym === 'NATURALGAS' ? 10 : sym === 'SENSEX' ? 200 : 100;
+  const getDetailedOptionRows = (sym) => {
+    const base = symbolBasePrices[sym] || 81840;
+    const step = sym === 'GOLD' ? 500 : sym === 'SILVER' ? 1000 : sym === 'CRUDEOIL' ? 100 : sym === 'NATURALGAS' ? 10 : sym === 'SENSEX' ? 100 : 100;
     
-    return [-2, -1, 0, 1, 2].map((offset) => {
+    return [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5].map((offset) => {
       const strike = base + (offset * step);
       return {
         strike,
-        callVol: `${(15 + Math.abs(offset) * 3).toFixed(2)} L`,
-        callIV: (18.5 + offset * 0.2).toFixed(2),
-        callVega: '27.45',
-        callGamma: '0.0003',
-        callTheta: '-85.20',
-        callDelta: '0.55',
-        callOIChg: `+${12000 + offset * 1500}`,
-        callOILakhs: (2.4 + offset * 0.3).toFixed(2),
-        callLTP: parseFloat((250 - offset * 35).toFixed(2)),
-        putLTP: parseFloat((210 + offset * 35).toFixed(2)),
-        putOILakhs: (2.1 - offset * 0.2).toFixed(2),
-        putOIChg: `+${10000 - offset * 1200}`,
-        putDelta: '-0.45',
-        putTheta: '-92.10',
-        putGamma: '0.0003',
-        putVega: '28.10',
-        putIV: '20.40',
-        putVol: `${(18 + Math.abs(offset) * 2).toFixed(2)} L`
+        callVol: `${(8.98 + Math.abs(offset) * 2.5).toFixed(2)} L`,
+        callIV: (30.48 + offset * 0.2).toFixed(2),
+        callVega: (3.3767 + offset * 0.1).toFixed(4),
+        callGamma: '0.0004',
+        callTheta: (-372.2445 + offset * 10).toFixed(4),
+        callDelta: (0.8696 - offset * 0.05).toFixed(4),
+        callOIChg: `${-28641 + offset * 1500}`,
+        callOILakhs: (21.4 + offset * 1.2).toFixed(2),
+        callLTP: parseFloat((492.30 - offset * 70).toFixed(2)),
+        putLTP: parseFloat((235.55 + offset * 70).toFixed(2)),
+        putOILakhs: (31.69 - offset * 0.8).toFixed(2),
+        putOIChg: `+${113440 + offset * 2500}`,
+        putDelta: (-0.5425 + offset * 0.04).toFixed(4),
+        putTheta: (-744.3559 - offset * 10).toFixed(4),
+        putGamma: '0.0008',
+        putVega: '6.3189',
+        putIV: '32.57',
+        putVolume: `${(8.18 + Math.abs(offset) * 1.5).toFixed(2)} Cr`
       };
     });
   };
 
-  const [optionRows, setOptionRows] = useState(() => getDynamicOptionRows('NIFTY'));
+  const [optionRows, setOptionRows] = useState(() => getDetailedOptionRows('SENSEX'));
 
   useEffect(() => {
-    setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
+    setOptionRows(getDetailedOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
   useEffect(() => {
@@ -182,7 +184,7 @@ export default function App() {
         const updated = { ...prevGroups };
         Object.keys(updated).forEach(grpKey => {
           updated[grpKey] = updated[grpKey].map(stock => {
-            const delta = (Math.random() - 0.48) * (stock.price * 0.0015);
+            const delta = (Math.random() - 0.48) * (stock.price * 0.0012);
             const newPrice = parseFloat((stock.price + delta).toFixed(2));
             const newChangeNum = parseFloat((stock.changeNum + delta).toFixed(2));
             const baseOrig = newPrice - newChangeNum;
@@ -203,8 +205,8 @@ export default function App() {
 
       setOptionRows(prevRows =>
         prevRows.map(row => {
-          const callDelta = (Math.random() - 0.47) * 4.5;
-          const putDelta = (Math.random() - 0.47) * 4.5;
+          const callDelta = (Math.random() - 0.47) * 3.5;
+          const putDelta = (Math.random() - 0.47) * 3.5;
           const newCallLTP = Math.max(2.00, parseFloat((row.callLTP + callDelta).toFixed(2)));
           const newPutLTP = Math.max(2.00, parseFloat((row.putLTP + putDelta).toFixed(2)));
           return {
@@ -219,7 +221,7 @@ export default function App() {
 
       setPositions(prevPos =>
         prevPos.map(pos => {
-          const priceChange = (Math.random() - 0.48) * 4;
+          const priceChange = (Math.random() - 0.48) * 3;
           const newLtp = parseFloat((pos.ltp + priceChange).toFixed(2));
           const diff = pos.type === 'BUY' ? (newLtp - pos.avgPrice) : (pos.avgPrice - newLtp);
           const totalPnlVal = parseFloat((diff * 10).toFixed(2));
@@ -228,20 +230,6 @@ export default function App() {
             ltp: newLtp,
             pnlVal: totalPnlVal,
             pnl: `${totalPnlVal >= 0 ? '+' : ''}₹${totalPnlVal.toFixed(2)}`
-          };
-        })
-      );
-
-      setHoldings(prevHold =>
-        prevHold.map(h => {
-          const priceChange = (Math.random() - 0.48) * 3;
-          const newCurrVal = parseFloat((h.currentVal + priceChange).toFixed(2));
-          const pnlVal = parseFloat((newCurrVal - (h.avgPrice * 10)).toFixed(2));
-          return {
-            ...h,
-            currentVal: newCurrVal,
-            pnlVal: pnlVal,
-            pnl: `${pnlVal >= 0 ? '+' : ''}₹${pnlVal.toFixed(2)}`
           };
         })
       );
@@ -291,7 +279,7 @@ export default function App() {
     alert(`${sym} वॉचलिस्ट ग्रुप ${activeWatchlistGroup} मध्ये यशस्वीरीत्या जोडला गेला!`);
   };
 
-  const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
+  const executeTrade = (instrumentName, price, type, category = 'position', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
     const tradeTime = new Date().toLocaleTimeString();
     
     if (orderType === 'GTT' && gttDetails) {
@@ -326,37 +314,23 @@ export default function App() {
     setOrderHistory([newTrade, ...orderHistory]);
     setUsedMargin(prev => prev + (price * 10));
 
-    if (category === 'position') {
-      setPositions([newTrade, ...positions]);
-      alert(`Successfully ${type}ed ${instrumentName} at ₹${price}! Added to Positions.`);
-    } else {
-      setHoldings([newTrade, ...holdings]);
-      alert(`Successfully ${type}ed ${instrumentName} at ₹${price}! Added to Holdings.`);
-    }
+    // Always add to Positions as requested by user
+    setPositions(prevPositions => [newTrade, ...prevPositions]);
+    setPortfolioSubTab('positions');
+    setActiveTab('portfolio');
+    alert(`Successfully placed ${type} order for ${instrumentName} at ₹${price}! Added to Positions.`);
   };
 
   const handleConfirmExit = () => {
     if (!exitModalData) return;
     const { type, item, orderType, limitPrice } = exitModalData;
-    const finalPrice = orderType === 'Limit' ? parseFloat(limitPrice) || item.currentVal / 10 || item.ltp : (item.currentVal / 10 || item.ltp);
+    const finalPrice = orderType === 'Limit' ? parseFloat(limitPrice) || item.ltp : item.ltp;
 
-    if (type === 'holding') {
-      setHoldings(holdings.filter(h => h.id !== item.id));
-      setTotalFunds(prev => prev + (finalPrice * 10));
-      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
-      alert(`Successfully sold ${item.instrument} via ${orderType} order at ₹${finalPrice}!`);
-    } else if (type === 'position') {
-      setPositions(positions.filter(p => p.id !== item.id));
-      setTotalFunds(prev => prev + (finalPrice * 10) + item.pnlVal);
-      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
-      alert(`Successfully squared off ${item.instrument} via ${orderType} order at ₹${finalPrice}!`);
-    }
+    setPositions(positions.filter(p => p.id !== item.id));
+    setTotalFunds(prev => prev + (finalPrice * 10) + item.pnlVal);
+    setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+    alert(`Successfully squared off ${item.instrument} via ${orderType} order at ₹${finalPrice}!`);
     setExitModalData(null);
-  };
-
-  const handleCancelGtt = (id) => {
-    setGttOrders(gttOrders.filter(g => g.id !== id));
-    alert("GTT Order cancelled successfully.");
   };
 
   const allActiveTrades = [...holdings, ...positions];
@@ -621,8 +595,8 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'holding', high: stock.high, low: stock.low })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
-                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'holding', high: stock.high, low: stock.low })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'position', high: stock.high, low: stock.low })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'position', high: stock.high, low: stock.low })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
                   </div>
                 </div>
             ))}
@@ -635,56 +609,93 @@ export default function App() {
               <AdvancedChart 
                 symbol={selectedStock} 
                 ltp={currentStockObj.price} 
-                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'holding', high: currentStockObj.high, low: currentStockObj.low })}
-                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'holding', high: currentStockObj.high, low: currentStockObj.low })}
+                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'position', high: currentStockObj.high, low: currentStockObj.low })}
+                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'position', high: currentStockObj.high, low: currentStockObj.low })}
               />
             </div>
           )}
 
           {activeTab === 'optionChain' && (
             <div className="bg-[#12141c] rounded-xl border border-gray-800 p-4 shadow-2xl flex-1 flex flex-col font-sans text-gray-100 overflow-hidden">
-              <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-3 border-b border-gray-800">
+              <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-2 border-b border-gray-800">
                 <span className="text-xs font-bold text-gray-400 mr-2">Option Chain:</span>
                 {optionSymbols.map((sym) => (
                   <button key={sym} onClick={() => setSelectedOptionSymbol(sym)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${selectedOptionSymbol === sym ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800'}`}>{sym}</button>
                 ))}
               </div>
 
-              <div className="flex justify-between items-center mb-3 text-xs">
-                <span className="font-bold text-purple-400">📊 Upstox Pro Style Option Chain - {selectedOptionSymbol} (Live Fluctuation Active)</span>
-                <span className="text-gray-400">Click <strong className="text-blue-400">[B]</strong> to Buy</span>
+              {/* Expiry Selector Bar */}
+              <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-3 border-b border-gray-800 text-xs">
+                <span className="text-gray-400 font-bold">Expiry:</span>
+                {expiryDates.map((exp) => (
+                  <button key={exp} onClick={() => setSelectedExpiry(exp)} className={`px-2.5 py-1 rounded-md font-medium cursor-pointer whitespace-nowrap ${selectedExpiry === exp ? 'bg-purple-600/30 border border-purple-500 text-purple-300' : 'bg-[#0b0e14] text-gray-400 hover:text-white border border-gray-800'}`}>{exp}</button>
+                ))}
               </div>
 
               <div className="overflow-x-auto flex-1 border border-gray-800 rounded-lg">
                 <table className="w-full text-left text-[11px] text-gray-300 border-collapse whitespace-nowrap font-mono">
                   <thead>
                     <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-center uppercase tracking-wider text-[10px]">
-                      <th className="p-2.5 border-r border-gray-800/60 bg-blue-950/20" colSpan="3">Calls (CE)</th>
+                      <th className="p-2.5 border-r border-gray-800/60 bg-blue-950/25" colSpan="9">Calls</th>
                       <th className="p-2.5 bg-gray-900 font-bold text-amber-400">STRIKE</th>
-                      <th className="p-2.5 border-l border-gray-800/60 bg-red-950/20" colSpan="3">Puts (PE)</th>
+                      <th className="p-2.5 border-l border-gray-800/60 bg-red-950/25" colSpan="9">Puts</th>
                     </tr>
-                    <tr className="bg-gray-900/90 text-gray-400 border-b border-gray-800 text-[10px]">
-                      <th className="p-2">Volume</th><th className="p-2">LTP</th><th className="p-2 border-r border-gray-800">Action</th>
-                      <th className="p-2 text-center bg-gray-900 font-bold text-amber-400">PRICE</th>
-                      <th className="p-2 border-l border-gray-800">Action</th><th className="p-2">LTP</th><th className="p-2">Volume</th>
+                    <tr className="bg-gray-900/90 text-gray-400 border-b border-gray-800 text-[10px] text-center">
+                      <th className="p-2">Volume</th>
+                      <th className="p-2">IV</th>
+                      <th className="p-2">Vega</th>
+                      <th className="p-2">Gamma</th>
+                      <th className="p-2">Theta</th>
+                      <th className="p-2">Delta</th>
+                      <th className="p-2">OI (chg)</th>
+                      <th className="p-2">OI (lakhs)</th>
+                      <th className="p-2 border-r border-gray-800">LTP / Action</th>
+                      
+                      <th className="p-2 bg-gray-900 font-bold text-amber-400">PRICE</th>
+
+                      <th className="p-2 border-l border-gray-800">Action / LTP</th>
+                      <th className="p-2">OI (lakhs)</th>
+                      <th className="p-2">OI (chg)</th>
+                      <th className="p-2">Delta</th>
+                      <th className="p-2">Theta</th>
+                      <th className="p-2">Gamma</th>
+                      <th className="p-2">Vega</th>
+                      <th className="p-2">IV</th>
+                      <th className="p-2">Volume</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/60">
                     {optionRows.map((r, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/45 transition-colors text-center">
                         <td className="p-2 text-gray-400">{r.callVol}</td>
-                        <td className={`p-2 font-bold font-mono ${r.callIsUp ? 'text-green-400' : 'text-red-400'}`}>₹{r.callLTP.toFixed(2)}</td>
-                        <td className="p-2 border-r border-gray-800">
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">B</button>
+                        <td className="p-2 text-gray-400">{r.callIV}</td>
+                        <td className="p-2 text-gray-400">{r.callVega}</td>
+                        <td className="p-2 text-gray-400">{r.callGamma}</td>
+                        <td className="p-2 text-gray-400">{r.callTheta}</td>
+                        <td className="p-2 text-gray-400">{r.callDelta}</td>
+                        <td className="p-2 text-gray-400">{r.callOIChg}</td>
+                        <td className="p-2 text-gray-300 font-bold">{r.callOILakhs}</td>
+                        <td className="p-2 border-r border-gray-800 flex items-center justify-center space-x-1">
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-blue-600 hover:bg-blue-500 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-red-600 hover:bg-red-500 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
+                          <span className={`font-bold font-mono ${r.callIsUp ? 'text-green-400' : 'text-red-400'}`}>₹{r.callLTP.toFixed(2)}</span>
                         </td>
 
                         <td className="p-2 font-bold text-white bg-gray-900/80 border-x border-gray-800 text-xs">{r.strike}</td>
 
-                        <td className="p-2 border-l border-gray-800">
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">B</button>
+                        <td className="p-2 border-l border-gray-800 flex items-center justify-center space-x-1">
+                          <span className={`font-bold font-mono ${r.putIsUp ? 'text-green-400' : 'text-red-400'}`}>₹{r.putLTP.toFixed(2)}</span>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-blue-600 hover:bg-blue-500 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-red-600 hover:bg-red-500 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
-                        <td className={`p-2 font-bold font-mono ${r.putIsUp ? 'text-green-400' : 'text-red-400'}`}>₹{r.putLTP.toFixed(2)}</td>
-                        <td className="p-2 text-gray-400">{r.putVol}</td>
+                        <td className="p-2 text-gray-300 font-bold">{r.putOILakhs}</td>
+                        <td className="p-2 text-gray-400">{r.putOIChg}</td>
+                        <td className="p-2 text-gray-400">{r.putDelta}</td>
+                        <td className="p-2 text-gray-400">{r.putTheta}</td>
+                        <td className="p-2 text-gray-400">{r.putGamma}</td>
+                        <td className="p-2 text-gray-400">{r.putVega}</td>
+                        <td className="p-2 text-gray-400">{r.putIV}</td>
+                        <td className="p-2 text-gray-400">{r.putVolume}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -703,57 +714,22 @@ export default function App() {
               </div>
 
               <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-4 overflow-x-auto whitespace-nowrap">
-                <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'holdings' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
                 <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'positions' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Positions ({positions.length})</button>
+                <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'holdings' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
                 <button onClick={() => setPortfolioSubTab('gtt')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'gtt' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
                 <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'history' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
                 <button onClick={() => setPortfolioSubTab('analytics')} className={`font-bold cursor-pointer pb-1 flex items-center gap-1 ${portfolioSubTab === 'analytics' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}><FiPieChart size={12}/> Trade Analytics Report</button>
               </div>
 
-              {portfolioSubTab === 'holdings' && (
-                <div className="overflow-x-auto flex-1">
-                  {holdings.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No holdings available. Buy stocks from watchlist or chart.</p>
-                  ) : (
-                    <table className="w-full text-center border-collapse">
-                      <thead>
-                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action / Exit</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {holdings.map(h => (
-                          <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/30">
-                            <td className="p-2 font-bold">{h.instrument}</td>
-                            <td className="p-2">{h.qty}</td>
-                            <td className="p-2 font-mono">₹{h.avgPrice}</td>
-                            <td className="p-2 text-amber-400 font-mono">₹{h.currentVal.toFixed(2)}</td>
-                            <td className={`p-2 font-bold font-mono ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
-                            <td className="p-2 space-x-1.5 flex justify-center items-center">
-                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow">
-                                <FiShare2 size={11}/> Share
-                              </button>
-                              <button onClick={() => setExitModalData({ type: 'holding', item: h, orderType: 'Market', limitPrice: h.currentVal / 10 })} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">
-                                Exit / Sell
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-
               {portfolioSubTab === 'positions' && (
                 <div className="overflow-x-auto flex-1">
                   {positions.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No open positions.</p>
+                    <p className="text-gray-500 text-center py-8">No open positions. Buy or Sell options/stocks from Option Chain or Watchlist to see them here.</p>
                   ) : (
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th><th className="p-2">Action</th>
+                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th><th className="p-2">Action / Square Off</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -777,15 +753,45 @@ export default function App() {
                 </div>
               )}
 
-              {portfolioSubTab === 'gtt' && (
+              {portfolioSubTab === 'holdings' && (
                 <div className="overflow-x-auto flex-1">
-                  {gttOrders.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No active GTT orders. Place GTT orders from order panel.</p>
+                  {holdings.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No holdings available.</p>
                   ) : (
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Time</th><th className="p-2">Instrument</th><th className="p-2">Qty</th><th className="p-2">Stoploss</th><th className="p-2">Target</th><th className="p-2">Status</th><th className="p-2">Action</th>
+                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {holdings.map(h => (
+                          <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/30">
+                            <td className="p-2 font-bold">{h.instrument}</td>
+                            <td className="p-2">{h.qty}</td>
+                            <td className="p-2 font-mono">₹{h.avgPrice}</td>
+                            <td className="p-2 text-amber-400 font-mono">₹{h.currentVal.toFixed(2)}</td>
+                            <td className={`p-2 font-bold font-mono ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
+                            <td className="p-2">
+                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Share</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
+              {portfolioSubTab === 'gtt' && (
+                <div className="overflow-x-auto flex-1">
+                  {gttOrders.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No active GTT orders.</p>
+                  ) : (
+                    <table className="w-full text-center border-collapse">
+                      <thead>
+                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
+                          <th className="p-2">Time</th><th className="p-2">Instrument</th><th className="p-2">Qty</th><th className="p-2">Stoploss</th><th className="p-2">Target</th><th className="p-2">Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -797,9 +803,6 @@ export default function App() {
                             <td className="p-2 text-red-400 font-mono">₹{g.stoploss}</td>
                             <td className="p-2 text-green-400 font-mono">₹{g.target}</td>
                             <td className="p-2 text-amber-400 font-bold">{g.status}</td>
-                            <td className="p-2">
-                              <button onClick={() => handleCancelGtt(g.id)} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Cancel Order</button>
-                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -879,7 +882,7 @@ export default function App() {
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-xs space-y-4">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <span>Exit Order:</span> <span className="text-purple-400">{exitModalData.item.instrument}</span>
+                <span>Square Off:</span> <span className="text-purple-400">{exitModalData.item.instrument}</span>
               </h3>
               <button onClick={() => setExitModalData(null)} className="text-gray-400 hover:text-white cursor-pointer"><FiX size={16}/></button>
             </div>
@@ -892,7 +895,7 @@ export default function App() {
 
               {exitModalData.orderType === 'Limit' && (
                 <div>
-                  <label className="text-gray-400 block mb-1">Set Target / Limit Price (₹)</label>
+                  <label className="text-gray-400 block mb-1">Set Limit Price (₹)</label>
                   <input 
                     type="number" 
                     value={exitModalData.limitPrice} 
@@ -905,7 +908,7 @@ export default function App() {
 
             <div className="flex space-x-2 pt-2">
               <button onClick={() => setExitModalData(null)} className="flex-1 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold cursor-pointer">Cancel</button>
-              <button onClick={handleConfirmExit} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold cursor-pointer shadow-lg">Confirm Exit</button>
+              <button onClick={handleConfirmExit} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold cursor-pointer shadow-lg">Confirm Square Off</button>
             </div>
           </div>
         </div>
@@ -961,7 +964,7 @@ export default function App() {
                 orderDetails.symbol, 
                 orderDetails.price, 
                 orderDetails.action, 
-                selectedOrderStock.category || 'holding', 
+                selectedOrderStock.category || 'position', 
                 orderDetails.quantity, 
                 orderDetails.orderType, 
                 orderDetails.gttDetails
