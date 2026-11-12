@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiMaximize2, FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText } from 'react-icons/fi';
+import { FiMaximize2, FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign } from 'react-icons/fi';
 import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
@@ -23,7 +23,7 @@ export default function App() {
     return localStorage.getItem('alpha_isLoggedIn') === 'true';
   });
   
-  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot', 'resetNew'
+  const [authMode, setAuthMode] = useState('login'); 
   const [activeTab, setActiveTab] = useState('chart');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('NIFTY 50');
@@ -41,11 +41,19 @@ export default function App() {
   const [selectedOrderStock, setSelectedOrderStock] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showFundsModal, setShowFundsModal] = useState(false);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [shareCardData, setShareCardData] = useState(null);
 
   const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
   const [positions, setPositions] = useState([]);
   const [holdings, setHoldings] = useState([]);
   const [orderHistory, setOrderHistory] = useState([]);
+  const [gttOrders, setGttOrders] = useState([]);
+
+  // Funds Management state
+  const [totalFunds, setTotalFunds] = useState(500000.00);
+  const [usedMargin, setUsedMargin] = useState(14500.00);
 
   const [email, setEmail] = useState('pkamble.kvic@hokvic.gov.in');
   const [password, setPassword] = useState('••••••••');
@@ -59,13 +67,13 @@ export default function App() {
       try { return JSON.parse(savedStocks); } catch (e) { }
     }
     return [
-      { name: 'NIFTY 50', price: 24893.03, change: '+1.26 (+0.01%)', isUp: true },
-      { name: 'BANKNIFTY', price: 47595.12, change: '-0.81 (-0.01%)', isUp: false },
-      { name: 'RELIANCE', price: 2973.10, change: '+0.02 (+0.00%)', isUp: true },
-      { name: 'TCS', price: 3942.49, change: '+0.41 (+0.00%)', isUp: true },
-      { name: 'INFY', price: 1624.84, change: '+0.03 (+0.00%)', isUp: true },
-      { name: 'HDFCBANK', price: 1466.97, change: '+0.24 (+0.00%)', isUp: true },
-      { name: 'TATAMOTORS', price: 989.40, change: '+0.64 (+0.01%)', isUp: true },
+      { name: 'NIFTY 50', price: 24893.03, change: '+1.26 (+0.01%)', isUp: true, high: 25050.00, low: 24780.00 },
+      { name: 'BANKNIFTY', price: 47595.12, change: '-0.81 (-0.01%)', isUp: false, high: 48100.00, low: 47400.00 },
+      { name: 'RELIANCE', price: 2973.10, change: '+0.02 (+0.00%)', isUp: true, high: 2995.00, low: 2950.00 },
+      { name: 'TCS', price: 3942.49, change: '+0.41 (+0.00%)', isUp: true, high: 3970.00, low: 3920.00 },
+      { name: 'INFY', price: 1624.84, change: '+0.03 (+0.00%)', isUp: true, high: 1640.00, low: 1610.00 },
+      { name: 'HDFCBANK', price: 1466.97, change: '+0.24 (+0.00%)', isUp: true, high: 1485.00, low: 1455.00 },
+      { name: 'TATAMOTORS', price: 989.40, change: '+0.64 (+0.01%)', isUp: true, high: 1005.00, low: 975.00 },
     ];
   });
 
@@ -132,7 +140,7 @@ export default function App() {
     setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
-  // लाईव्ह प्राईस फ्लक्चुएशन (Watchlist, Option Chain आणि Positions P&L साठी)
+  // लाईव्ह प्राईस फ्लक्चुएशन आणि P&L लाईव्ह अपडेट
   useEffect(() => {
     if (!isLoggedIn) return;
     const timer = setInterval(() => {
@@ -140,7 +148,13 @@ export default function App() {
         prevStocks.map(stock => {
           const changeVal = (Math.random() - 0.48) * (stock.price * 0.001);
           const newPrice = parseFloat((stock.price + changeVal).toFixed(2));
-          return { ...stock, price: newPrice, isUp: changeVal >= 0 };
+          return { 
+            ...stock, 
+            price: newPrice, 
+            isUp: changeVal >= 0,
+            high: Math.max(stock.high || newPrice, newPrice),
+            low: Math.min(stock.low || newPrice, newPrice)
+          };
         })
       );
 
@@ -206,13 +220,29 @@ export default function App() {
     }
 
     const baseP = stockBasePrices[sym] || 1500.00;
-    setStocks([...stocks, { name: sym, price: baseP, change: '+0.50 (+0.03%)', isUp: true }]);
+    setStocks([...stocks, { name: sym, price: baseP, change: '+0.50 (+0.03%)', isUp: true, high: baseP * 1.02, low: baseP * 0.98 }]);
     setNewStockInput('');
     alert(`${sym} वॉचलिस्टमध्ये यशस्वीरीत्या जोडला गेला!`);
   };
 
-  const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1) => {
+  const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
     const tradeTime = new Date().toLocaleTimeString();
+    
+    if (orderType === 'GTT' && gttDetails) {
+      const gttItem = {
+        id: Date.now(),
+        instrument: instrumentName,
+        stoploss: gttDetails.stoploss,
+        target: gttDetails.target,
+        qty: `${quantity * 10} Qty`,
+        status: 'ACTIVE (TRIGGER PENDING)',
+        time: tradeTime
+      };
+      setGttOrders([gttItem, ...gttOrders]);
+      alert(`GTT OCO Order placed successfully for ${instrumentName}! Stoploss: ₹${gttDetails.stoploss}, Target: ₹${gttDetails.target}`);
+      return;
+    }
+
     const newTrade = {
       id: Date.now(),
       instrument: instrumentName,
@@ -228,6 +258,7 @@ export default function App() {
     };
 
     setOrderHistory([newTrade, ...orderHistory]);
+    setUsedMargin(prev => prev + (price * 10));
 
     if (category === 'position') {
       setPositions([newTrade, ...positions]);
@@ -238,7 +269,11 @@ export default function App() {
     }
   };
 
-  // Login Page with Register, Forgot Password, and Reset features
+  // Trade Analytics calculation
+  const totalTradesCount = orderHistory.length;
+  const profitableTrades = [...holdings, ...positions].filter(item => item.pnlVal >= 0).length;
+  const winRatePercentage = totalTradesCount > 0 ? ((profitableTrades / (totalTradesCount || 1)) * 100).toFixed(1) : '0.0';
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -381,6 +416,12 @@ export default function App() {
           <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-lg text-sm tracking-wide shadow-md">
             AlphaTrade Pro
           </span>
+          <button onClick={() => setShowFundsModal(true)} className="bg-gray-800 hover:bg-gray-700 text-green-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer">
+            <FiDollarSign size={13}/> Funds: ₹{(totalFunds - usedMargin).toLocaleString()}
+          </button>
+          <button onClick={() => setShowAnalyticsModal(true)} className="bg-gray-800 hover:bg-gray-700 text-purple-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer">
+            <FiPieChart size={13}/> Analytics (Win: {winRatePercentage}%)
+          </button>
         </div>
 
         <nav className="flex items-center space-x-1">
@@ -464,8 +505,8 @@ export default function App() {
                     <span className="text-[10px] text-gray-400">NSE ₹{stock.price.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'holding' })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
-                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'holding' })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'holding', high: stock.high, low: stock.low })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'holding', high: stock.high, low: stock.low })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
                   </div>
                 </div>
             ))}
@@ -478,8 +519,8 @@ export default function App() {
               <AdvancedChart 
                 symbol={selectedStock} 
                 ltp={currentStockObj.price} 
-                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'holding' })}
-                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'holding' })}
+                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'holding', high: currentStockObj.high, low: currentStockObj.low })}
+                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'holding', high: currentStockObj.high, low: currentStockObj.low })}
               />
             </div>
           )}
@@ -518,15 +559,15 @@ export default function App() {
                         <td className="p-2 text-gray-400">{r.callVol}</td><td className="p-2 text-gray-400">{r.callIV}</td><td className="p-2 text-gray-400">{r.callVega}</td><td className="p-2 text-gray-400">{r.callGamma}</td><td className="p-2 text-gray-400">{r.callTheta}</td><td className="p-2 text-gray-400">{r.callDelta}</td><td className="p-2 text-green-400">{r.callOIChg}</td><td className="p-2 text-blue-400 font-bold">{r.callOILakhs}</td>
                         <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.callLTP.toFixed(2)}</td>
                         <td className="p-2 border-r border-gray-800 space-x-1">
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'BUY', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} CE`, price: r.callLTP, actionType: 'SELL', category: 'position', high: r.callLTP * 1.05, low: r.callLTP * 0.95 })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
 
                         <td className="p-2 font-bold text-white bg-gray-900/80 border-x border-gray-800 text-xs">{r.strike}</td>
 
                         <td className="p-2 border-l border-gray-800 space-x-1">
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position' })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
-                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position' })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'BUY', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">B</button>
+                          <button onClick={() => setSelectedOrderStock({ symbol: `${selectedOptionSymbol} ${r.strike} PE`, price: r.putLTP, actionType: 'SELL', category: 'position', high: r.putLTP * 1.05, low: r.putLTP * 0.95 })} className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer">S</button>
                         </td>
                         <td className="p-2 text-amber-400 font-bold animate-pulse">₹{r.putLTP.toFixed(2)}</td>
                         <td className="p-2 text-blue-400 font-bold">{r.putOILakhs}</td><td className="p-2 text-green-400">{r.putOIChg}</td><td className="p-2 text-gray-400">{r.putDelta}</td><td className="p-2 text-gray-400">{r.putTheta}</td><td className="p-2 text-gray-400">{r.putGamma}</td><td className="p-2 text-gray-400">{r.putVega}</td><td className="p-2 text-gray-400">{r.putIV}</td><td className="p-2 text-gray-400">{r.putVol}</td>
@@ -540,10 +581,11 @@ export default function App() {
 
           {activeTab === 'portfolio' && (
             <div className="flex-1 bg-[#12141c] border border-gray-800 rounded-xl p-4 flex flex-col text-xs text-white">
-              <h2 className="text-sm font-bold mb-3">Portfolio & Order History Log</h2>
+              <h2 className="text-sm font-bold mb-3">Portfolio, Positions & GTT Orders Log</h2>
               <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-3">
                 <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer ${portfolioSubTab === 'holdings' ? 'text-purple-400' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
                 <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer ${portfolioSubTab === 'positions' ? 'text-purple-400' : 'text-gray-400'}`}>Positions ({positions.length})</button>
+                <button onClick={() => setPortfolioSubTab('gtt')} className={`font-bold cursor-pointer ${portfolioSubTab === 'gtt' ? 'text-purple-400' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
                 <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer ${portfolioSubTab === 'history' ? 'text-purple-400' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
               </div>
 
@@ -555,7 +597,7 @@ export default function App() {
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th>
+                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -566,6 +608,11 @@ export default function App() {
                             <td className="p-2">₹{h.avgPrice}</td>
                             <td className="p-2 text-amber-400">₹{h.currentVal.toFixed(2)}</td>
                             <td className={`p-2 font-bold ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
+                            <td className="p-2">
+                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer">
+                                <FiShare2 size={11}/> Share P&L
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -582,7 +629,7 @@ export default function App() {
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th>
+                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th><th className="p-2">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -594,6 +641,39 @@ export default function App() {
                             <td className="p-2">₹{p.avgPrice}</td>
                             <td className="p-2 text-amber-400">₹{p.ltp}</td>
                             <td className={`p-2 font-bold ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
+                            <td className="p-2">
+                              <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer">
+                                <FiShare2 size={11}/> Share P&L
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
+              {portfolioSubTab === 'gtt' && (
+                <div className="overflow-x-auto flex-1">
+                  {gttOrders.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No active GTT orders. Place GTT orders from order panel.</p>
+                  ) : (
+                    <table className="w-full text-center border-collapse">
+                      <thead>
+                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
+                          <th className="p-2">Time</th><th className="p-2">Instrument</th><th className="p-2">Qty</th><th className="p-2">Stoploss Trigger</th><th className="p-2">Target Price</th><th className="p-2">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {gttOrders.map(g => (
+                          <tr key={g.id} className="border-b border-gray-800">
+                            <td className="p-2 text-gray-400">{g.time}</td>
+                            <td className="p-2 font-bold text-white">{g.instrument}</td>
+                            <td className="p-2">{g.qty}</td>
+                            <td className="p-2 text-red-400">₹{g.stoploss}</td>
+                            <td className="p-2 text-green-400">₹{g.target}</td>
+                            <td className="p-2 text-amber-400 font-bold">{g.status}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -634,6 +714,65 @@ export default function App() {
         </main>
       </div>
 
+      {/* Funds Dashboard Modal */}
+      {showFundsModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl font-sans text-xs">
+            <h3 className="text-base font-bold text-green-400 mb-4 flex items-center gap-2"><FiDollarSign/> Funds & Margin Dashboard</h3>
+            <div className="space-y-3 bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-4">
+              <div className="flex justify-between"><span className="text-gray-400">Total Virtual Capital:</span><span className="font-bold text-white">₹{totalFunds.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">Used Margin (Open Trades):</span><span className="font-bold text-amber-400">₹{usedMargin.toLocaleString()}</span></div>
+              <div className="border-t border-gray-800 pt-2 flex justify-between"><span className="text-gray-400 font-bold">Available Trading Balance:</span><span className="font-bold text-green-400">₹{(totalFunds - usedMargin).toLocaleString()}</span></div>
+            </div>
+            <div className="flex justify-end">
+              <button onClick={() => setShowFundsModal(false)} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer">Close Dashboard</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trade Analytics Modal */}
+      {showAnalyticsModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl font-sans text-xs">
+            <h3 className="text-base font-bold text-purple-400 mb-4 flex items-center gap-2"><FiPieChart/> Trade Analytics & Win Rate</h3>
+            <div className="space-y-3 bg-[#0b0e14] p-4 rounded-xl border border-gray-800 mb-4">
+              <div className="flex justify-between"><span className="text-gray-400">Total Executed Orders:</span><span className="font-bold text-white">{totalTradesCount}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">Profitable Trades:</span><span className="font-bold text-green-400">{profitableTrades}</span></div>
+              <div className="border-t border-gray-800 pt-2 flex justify-between"><span className="text-gray-400 font-bold">Win Rate Percentage:</span><span className="font-bold text-purple-400 text-sm">{winRatePercentage}%</span></div>
+            </div>
+            <div className="flex justify-end">
+              <button onClick={() => setShowAnalyticsModal(false)} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer">Close Analytics</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share P&L Screenshot Card Modal */}
+      {shareCardData && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-[#181b25] to-[#0b0e14] border border-purple-500/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
+            <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro - Verified P&L</span>
+            <div className="bg-[#12141c] border border-gray-800 p-4 rounded-xl space-y-2 text-left">
+              <p className="text-sm font-bold text-white">{shareCardData.instrument}</p>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Type: <strong className="text-blue-400">{shareCardData.type}</strong></span>
+                <span>Qty: <strong>{shareCardData.qty}</strong></span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 pt-2 border-t border-gray-800">
+                <span>Avg Price: ₹{shareCardData.avgPrice}</span>
+                <span className={`font-bold text-sm ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>P&L: {shareCardData.pnl}</span>
+              </div>
+            </div>
+            <p className="text-[10px] text-gray-500">Traded on AlphaTrade Pro Paper Trading Platform</p>
+            <div className="flex space-x-2 pt-2">
+              <button onClick={() => { alert("P&L Card copied to clipboard!"); setShareCardData(null); }} className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer">📋 Copy Card</button>
+              <button onClick={() => setShareCardData(null)} className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs cursor-pointer">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showTokenModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
@@ -658,11 +797,19 @@ export default function App() {
       {selectedOrderStock && (
         <div className="absolute right-0 top-0 h-full z-50 shadow-2xl">
           <PlaceOrderPanel 
-            stock={{ symbol: selectedOrderStock.symbol, price: selectedOrderStock.price, exchange: 'NSE' }}
+            stock={{ symbol: selectedOrderStock.symbol, price: selectedOrderStock.price, exchange: 'NSE', high: selectedOrderStock.high, low: selectedOrderStock.low }}
             actionType={selectedOrderStock.actionType}
             onClose={() => setSelectedOrderStock(null)}
             onPlaceOrder={(orderDetails) => {
-              executeTrade(orderDetails.symbol, orderDetails.price, orderDetails.action, selectedOrderStock.category || 'holding', orderDetails.quantity);
+              executeTrade(
+                orderDetails.symbol, 
+                orderDetails.price, 
+                orderDetails.action, 
+                selectedOrderStock.category || 'holding', 
+                orderDetails.quantity, 
+                orderDetails.orderType, 
+                orderDetails.gttDetails
+              );
               setSelectedOrderStock(null);
             }}
           />
