@@ -507,7 +507,7 @@ export default function App() {
           <button onClick={() => setActiveTab('portfolio')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Portfolio & History</button>
         </nav>
 
-        <div className="flex items-center space-x-3 relative z-50">
+        <div className="flex items-center space-x-3 relative z-50 pointer-events-auto">
           {isUpstoxConnected ? (
             <div className="flex items-center space-x-1.5 bg-green-950/60 border border-green-500/40 px-3 py-1 rounded-lg text-xs">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -516,17 +516,17 @@ export default function App() {
           ) : (
             <button 
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={() => {
+                console.log("Token button clicked!");
                 setShowTokenModal(true);
               }} 
-              className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all cursor-pointer"
+              className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all cursor-pointer relative z-50"
             >
               🔑 Set Upstox Token
             </button>
           )}
 
-          <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all">PK</button>
+          <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold w-8 h-8 rounded-lg text-xs tracking-wide shadow-md flex items-center justify-center cursor-pointer transition-all relative z-50">PK</button>
           
           {showProfileMenu && (
             <div className="absolute right-0 top-10 w-64 bg-[#181b25] border border-gray-800 rounded-xl shadow-2xl py-2 z-50 font-sans text-xs">
