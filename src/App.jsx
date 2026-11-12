@@ -32,11 +32,10 @@ const stockBasePrices = {
 };
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('alpha_isLoggedIn') === 'true';
-  });
+  // Always start with false so Login page appears first on fresh load / logout
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  const [authMode, setAuthMode] = useState('login'); 
+  const [authMode, setAuthMode] = useState('login'); // login, register, forgot, resetNew
   const [activeTab, setActiveTab] = useState('optionChain');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
@@ -47,9 +46,7 @@ export default function App() {
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('SENSEX');
   const [selectedExpiry, setSelectedExpiry] = useState('12 Nov 2026');
 
-  const [isUpstoxConnected, setIsUpstoxConnected] = useState(() => {
-    return localStorage.getItem('alpha_upstoxConnected') === 'true';
-  });
+  const [isUpstoxConnected, setIsUpstoxConnected] = useState(false);
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [upstoxToken, setUpstoxToken] = useState('');
 
@@ -75,54 +72,36 @@ export default function App() {
   const [fullName, setFullName] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  const [watchlistGroups, setWatchlistGroups] = useState(() => {
-    const saved = localStorage.getItem('alpha_watchlist_groups');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return {
-      '1': [
-        { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.07, changePct: -0.55, isUp: false, high: 108.00, low: 104.00 },
-        { name: 'EXIDEIND', exchange: 'NSE EQ', price: 382.00, changeNum: -3.95, changePct: -1.02, isUp: false, high: 384.00, low: 378.50 },
-        { name: 'PVRINOX', exchange: 'NSE EQ', price: 1591.00, changeNum: 7.60, changePct: 0.48, isUp: true, high: 1610.00, low: 1580.00 },
-        { name: 'PNB', exchange: 'NSE EQ', price: 139.60, changeNum: 1.12, changePct: 0.81, isUp: true, high: 142.00, low: 138.00 },
-        { name: 'PCBL', exchange: 'NSE EQ', price: 286.30, changeNum: 5.75, changePct: 2.05, isUp: true, high: 292.00, low: 280.00 },
-        { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.10, changeNum: -0.01, changePct: -0.90, isUp: false, high: 1.15, low: 1.10 },
-        { name: 'ONGC', exchange: 'NSE EQ', price: 225.45, changeNum: -9.35, changePct: -3.98, isUp: false, high: 235.00, low: 224.00 },
-        { name: 'CIPLA', exchange: 'NSE EQ', price: 1404.00, changeNum: -15.90, changePct: -1.12, isUp: false, high: 1425.00, low: 1400.00 },
-        { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.03, changeNum: 0.80, changePct: 1.00, isUp: true, high: 83.00, low: 80.00 },
-        { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.40, changeNum: 27.70, changePct: 2.47, isUp: true, high: 1160.00, low: 1120.00 },
-        { name: 'TECHM', exchange: 'NSE EQ', price: 1772.40, changeNum: -16.10, changePct: -0.90, isUp: false, high: 1795.00, low: 1770.00 },
-        { name: 'SPENCERS', exchange: 'NSE EQ', price: 22.85, changeNum: 1.08, changePct: 4.96, isUp: true, high: 23.50, low: 21.50 },
-        { name: 'COALINDIA', exchange: 'NSE EQ', price: 402.90, changeNum: -3.40, changePct: -0.84, isUp: false, high: 410.00, low: 400.00 },
-        { name: 'HINDZINC', exchange: 'NSE EQ', price: 567.80, changeNum: -11.20, changePct: -1.93, isUp: false, high: 585.00, low: 568.00 }
-      ],
-      '2': [
-        { name: 'NIFTY 50', exchange: 'NSE EQ', price: 24893.03, changeNum: 1.26, changePct: 0.01, isUp: true, high: 25050.00, low: 24780.00 },
-        { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 61104.90, changeNum: 312.50, changePct: 0.51, isUp: true, high: 61300.00, low: 60800.00 },
-        { name: 'SENSEX', exchange: 'BSE X', price: 81840.23, changeNum: -39.17, changePct: -0.05, isUp: false, high: 82100.00, low: 81500.00 }
-      ],
-      '3': [
-        { name: 'TCS', exchange: 'NSE EQ', price: 3942.49, changeNum: 0.41, changePct: 0.00, isUp: true, high: 3970.00, low: 3920.00 },
-        { name: 'INFY', exchange: 'NSE EQ', price: 1624.84, changeNum: 0.03, changePct: 0.00, isUp: true, high: 1640.00, low: 1610.00 },
-        { name: 'HDFCBANK', exchange: 'NSE EQ', price: 1466.97, changeNum: 0.24, changePct: 0.00, isUp: true, high: 1485.00, low: 1455.00 }
-      ],
-      '4': [],
-      '5': []
-    };
+  const [watchlistGroups, setWatchlistGroups] = useState({
+    '1': [
+      { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.07, changePct: -0.55, isUp: false, high: 108.00, low: 104.00 },
+      { name: 'EXIDEIND', exchange: 'NSE EQ', price: 382.00, changeNum: -3.95, changePct: -1.02, isUp: false, high: 384.00, low: 378.50 },
+      { name: 'PVRINOX', exchange: 'NSE EQ', price: 1591.00, changeNum: 7.60, changePct: 0.48, isUp: true, high: 1610.00, low: 1580.00 },
+      { name: 'PNB', exchange: 'NSE EQ', price: 139.60, changeNum: 1.12, changePct: 0.81, isUp: true, high: 142.00, low: 138.00 },
+      { name: 'PCBL', exchange: 'NSE EQ', price: 286.30, changeNum: 5.75, changePct: 2.05, isUp: true, high: 292.00, low: 280.00 },
+      { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.10, changeNum: -0.01, changePct: -0.90, isUp: false, high: 1.15, low: 1.10 },
+      { name: 'ONGC', exchange: 'NSE EQ', price: 225.45, changeNum: -9.35, changePct: -3.98, isUp: false, high: 235.00, low: 224.00 },
+      { name: 'CIPLA', exchange: 'NSE EQ', price: 1404.00, changeNum: -15.90, changePct: -1.12, isUp: false, high: 1425.00, low: 1400.00 },
+      { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.03, changeNum: 0.80, changePct: 1.00, isUp: true, high: 83.00, low: 80.00 },
+      { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.40, changeNum: 27.70, changePct: 2.47, isUp: true, high: 1160.00, low: 1120.00 },
+      { name: 'TECHM', exchange: 'NSE EQ', price: 1772.40, changeNum: -16.10, changePct: -0.90, isUp: false, high: 1795.00, low: 1770.00 },
+      { name: 'SPENCERS', exchange: 'NSE EQ', price: 22.85, changeNum: 1.08, changePct: 4.96, isUp: true, high: 23.50, low: 21.50 },
+      { name: 'COALINDIA', exchange: 'NSE EQ', price: 402.90, changeNum: -3.40, changePct: -0.84, isUp: false, high: 410.00, low: 400.00 },
+      { name: 'HINDZINC', exchange: 'NSE EQ', price: 567.80, changeNum: -11.20, changePct: -1.93, isUp: false, high: 585.00, low: 568.00 }
+    ],
+    '2': [
+      { name: 'NIFTY 50', exchange: 'NSE EQ', price: 24893.03, changeNum: 1.26, changePct: 0.01, isUp: true, high: 25050.00, low: 24780.00 },
+      { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 61104.90, changeNum: 312.50, changePct: 0.51, isUp: true, high: 61300.00, low: 60800.00 },
+      { name: 'SENSEX', exchange: 'BSE X', price: 81840.23, changeNum: -39.17, changePct: -0.05, isUp: false, high: 82100.00, low: 81500.00 }
+    ],
+    '3': [
+      { name: 'TCS', exchange: 'NSE EQ', price: 3942.49, changeNum: 0.41, changePct: 0.00, isUp: true, high: 3970.00, low: 3920.00 },
+      { name: 'INFY', exchange: 'NSE EQ', price: 1624.84, changeNum: 0.03, changePct: 0.00, isUp: true, high: 1640.00, low: 1610.00 },
+      { name: 'HDFCBANK', exchange: 'NSE EQ', price: 1466.97, changeNum: 0.24, changePct: 0.00, isUp: true, high: 1485.00, low: 1455.00 }
+    ],
+    '4': [],
+    '5': []
   });
-
-  useEffect(() => {
-    localStorage.setItem('alpha_isLoggedIn', isLoggedIn);
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    localStorage.setItem('alpha_upstoxConnected', isUpstoxConnected);
-  }, [isUpstoxConnected]);
-
-  useEffect(() => {
-    localStorage.setItem('alpha_watchlist_groups', JSON.stringify(watchlistGroups));
-  }, [watchlistGroups]);
 
   const currentGroupStocks = watchlistGroups[activeWatchlistGroup] || [];
   const currentStockObj = currentGroupStocks.find(s => s.name === selectedStock) || currentGroupStocks[0] || { name: 'EXIDEIND', price: 381.45, high: 384, low: 378 };
@@ -329,7 +308,6 @@ export default function App() {
     setOrderHistory([newTrade, ...orderHistory]);
     setUsedMargin(prev => prev + (price * 10));
 
-    // जर हा स्टॉक (Equity) असेल तर Holdings मध्ये जाईल, आणि जर ऑप्शन (CE/PE) असेल तर Positions मध्ये जाईल
     const isOption = instrumentName.includes('CE') || instrumentName.includes('PE');
 
     if (isOption) {
@@ -373,6 +351,7 @@ export default function App() {
     ? ((winsCount / (winsCount + lossesCount)) * 100).toFixed(1) 
     : (totalTradesCount > 0 ? '100.0' : '0.0');
 
+  // **LOGIN / AUTH PAGE**
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col items-center justify-center font-sans p-4">
@@ -501,6 +480,7 @@ export default function App() {
     );
   }
 
+  // **MAIN TRADING DASHBOARD**
   return (
     <div className="min-h-screen bg-[#0b0e14] text-gray-100 flex flex-col font-sans relative overflow-hidden">
       
@@ -553,7 +533,7 @@ export default function App() {
                 <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
               </div>
               <div className="border-t border-gray-800 pt-1">
-                <button onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); setAuthMode('login'); localStorage.removeItem('alpha_isLoggedIn'); }} className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold cursor-pointer"><FiLogOut size={13}/><span>Logout</span></button>
+                <button onClick={() => { setShowProfileMenu(false); setIsLoggedIn(false); setAuthMode('login'); }} className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 flex items-center space-x-2 font-bold cursor-pointer"><FiLogOut size={13}/><span>Logout</span></button>
               </div>
             </div>
           )}
