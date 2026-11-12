@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown, FiPlus } from 'react-icons/fi';
 import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
 import AdvancedChart from './components/AdvancedChart';
 
 const stockBasePrices = {
+  'EXIDEIND': 381.45,
+  'DHANSAFAL': 105.50,
+  'PVRINOX': 1597.70,
+  'PNB': 139.83,
+  'PCBL': 288.55,
+  'GTLINFRA': 1.11,
+  'ONGC': 226.18,
+  'CIPLA': 1409.60,
+  'IDFCFIRSTB': 81.80,
+  'PNBHOUSING': 1149.70,
+  'TECHM': 1779.10,
+  'SPENCERS': 22.85,
+  'COALINDIA': 403.35,
+  'HINDZINC': 571.60,
   'NIFTY 50': 24893.03,
   'BANKNIFTY': 47595.12,
   'RELIANCE': 2973.10,
@@ -13,9 +27,7 @@ const stockBasePrices = {
   'INFY': 1624.84,
   'HDFCBANK': 1466.97,
   'TATAMOTORS': 989.40,
-  'WIPRO': 480.20,
-  'ITC': 430.50,
-  'SBIN': 790.15
+  'WIPRO': 480.20
 };
 
 export default function App() {
@@ -26,7 +38,10 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login'); 
   const [activeTab, setActiveTab] = useState('chart');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [selectedStock, setSelectedStock] = useState('NIFTY 50');
+  const [selectedStock, setSelectedStock] = useState('EXIDEIND');
+
+  // Watchlist Groups / Tabs (Upstox Style 1, 2, 3, 4, 5)
+  const [activeWatchlistGroup, setActiveWatchlistGroup] = useState('1');
 
   const [watchlistSearch, setWatchlistSearch] = useState('');
   const [newStockInput, setNewStockInput] = useState('');
@@ -60,20 +75,42 @@ export default function App() {
   const [fullName, setFullName] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  const [stocks, setStocks] = useState(() => {
-    const savedStocks = localStorage.getItem('alpha_watchlist');
-    if (savedStocks) {
-      try { return JSON.parse(savedStocks); } catch (e) { }
+  // Group-wise Watchlist State
+  const [watchlistGroups, setWatchlistGroups] = useState(() => {
+    const saved = localStorage.getItem('alpha_watchlist_groups');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      { name: 'NIFTY 50', price: 24893.03, change: '+1.26 (+0.01%)', isUp: true, high: 25050.00, low: 24780.00 },
-      { name: 'BANKNIFTY', price: 47595.12, change: '-0.81 (-0.01%)', isUp: false, high: 48100.00, low: 47400.00 },
-      { name: 'RELIANCE', price: 2973.10, change: '+0.02 (+0.00%)', isUp: true, high: 2995.00, low: 2950.00 },
-      { name: 'TCS', price: 3942.49, change: '+0.41 (+0.00%)', isUp: true, high: 3970.00, low: 3920.00 },
-      { name: 'INFY', price: 1624.84, change: '+0.03 (+0.00%)', isUp: true, high: 1640.00, low: 1610.00 },
-      { name: 'HDFCBANK', price: 1466.97, change: '+0.24 (+0.00%)', isUp: true, high: 1485.00, low: 1455.00 },
-      { name: 'TATAMOTORS', price: 989.40, change: '+0.64 (+0.01%)', isUp: true, high: 1005.00, low: 975.00 },
-    ];
+    return {
+      '1': [
+        { name: 'EXIDEIND', exchange: 'NSE EQ', price: 381.45, changeNum: -4.50, changePct: -1.17, isUp: false, high: 384.00, low: 378.50 },
+        { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.05, changePct: -1.82, isUp: false, high: 108.00, low: 104.00 },
+        { name: 'PVRINOX', exchange: 'NSE EQ', price: 1597.70, changeNum: 14.30, changePct: 0.90, isUp: true, high: 1610.00, low: 1580.00 },
+        { name: 'PNB', exchange: 'NSE EQ', price: 139.83, changeNum: 1.35, changePct: 0.97, isUp: true, high: 142.00, low: 138.00 },
+        { name: 'PCBL', exchange: 'NSE EQ', price: 288.55, changeNum: 8.00, changePct: 2.85, isUp: true, high: 292.00, low: 280.00 },
+        { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.11, changeNum: 0.00, changePct: 0.00, isUp: true, high: 1.15, low: 1.10 },
+        { name: 'ONGC', exchange: 'NSE EQ', price: 226.18, changeNum: -8.62, changePct: -3.67, isUp: false, high: 235.00, low: 224.00 },
+        { name: 'CIPLA', exchange: 'NSE EQ', price: 1409.60, changeNum: -10.30, changePct: -0.73, isUp: false, high: 1425.00, low: 1400.00 },
+        { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.80, changeNum: 1.57, changePct: 1.96, isUp: true, high: 83.00, low: 80.00 },
+        { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.70, changeNum: 28.00, changePct: 2.50, isUp: true, high: 1160.00, low: 1120.00 },
+        { name: 'TECHM', exchange: 'NSE EQ', price: 1779.10, changeNum: -9.40, changePct: -0.53, isUp: false, high: 1795.00, low: 1770.00 },
+        { name: 'SPENCERS', exchange: 'NSE EQ', price: 22.85, changeNum: 1.08, changePct: 4.96, isUp: true, high: 23.50, low: 21.50 },
+        { name: 'COALINDIA', exchange: 'NSE EQ', price: 403.35, changeNum: -2.95, changePct: -0.73, isUp: false, high: 410.00, low: 400.00 },
+        { name: 'HINDZINC', exchange: 'NSE EQ', price: 571.60, changeNum: -7.40, changePct: -1.28, isUp: false, high: 585.00, low: 568.00 }
+      ],
+      '2': [
+        { name: 'NIFTY 50', exchange: 'NSE EQ', price: 24893.03, changeNum: 1.26, changePct: 0.01, isUp: true, high: 25050.00, low: 24780.00 },
+        { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 47595.12, changeNum: -0.81, changePct: -0.01, isUp: false, high: 48100.00, low: 47400.00 },
+        { name: 'RELIANCE', exchange: 'NSE EQ', price: 2973.10, changeNum: 0.02, changePct: 0.00, isUp: true, high: 2995.00, low: 2950.00 }
+      ],
+      '3': [
+        { name: 'TCS', exchange: 'NSE EQ', price: 3942.49, changeNum: 0.41, changePct: 0.00, isUp: true, high: 3970.00, low: 3920.00 },
+        { name: 'INFY', exchange: 'NSE EQ', price: 1624.84, changeNum: 0.03, changePct: 0.00, isUp: true, high: 1640.00, low: 1610.00 },
+        { name: 'HDFCBANK', exchange: 'NSE EQ', price: 1466.97, changeNum: 0.24, changePct: 0.00, isUp: true, high: 1485.00, low: 1455.00 }
+      ],
+      '4': [],
+      '5': []
+    };
   });
 
   useEffect(() => {
@@ -85,12 +122,14 @@ export default function App() {
   }, [isUpstoxConnected]);
 
   useEffect(() => {
-    localStorage.setItem('alpha_watchlist', JSON.stringify(stocks));
-  }, [stocks]);
+    localStorage.setItem('alpha_watchlist_groups', JSON.stringify(watchlistGroups));
+  }, [watchlistGroups]);
+
+  const currentGroupStocks = watchlistGroups[activeWatchlistGroup] || [];
+  const currentStockObj = currentGroupStocks.find(s => s.name === selectedStock) || currentGroupStocks[0] || { name: 'EXIDEIND', price: 381.45, high: 384, low: 378 };
 
   const optionSymbols = ['NIFTY', 'SENSEX', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'CRUDEOIL', 'NATURALGAS', 'GOLD', 'SILVER'];
-  const currentStockObj = stocks.find(s => s.name === selectedStock) || stocks[0];
-
+  
   const symbolBasePrices = {
     'NIFTY': 24900,
     'SENSEX': 81200,
@@ -139,30 +178,31 @@ export default function App() {
     setOptionRows(getDynamicOptionRows(selectedOptionSymbol));
   }, [selectedOptionSymbol]);
 
+  // लाईव्ह प्राईस फ्लक्चुएशन आणि % बदल रिअल-टाईम अपडेट
   useEffect(() => {
     if (!isLoggedIn) return;
     const timer = setInterval(() => {
-      setStocks(prevStocks =>
-        prevStocks.map(stock => {
-          const changeVal = (Math.random() - 0.48) * (stock.price * 0.001);
-          const newPrice = parseFloat((stock.price + changeVal).toFixed(2));
-          return { 
-            ...stock, 
-            price: newPrice, 
-            isUp: changeVal >= 0,
-            high: Math.max(stock.high || newPrice, newPrice),
-            low: Math.min(stock.low || newPrice, newPrice)
-          };
-        })
-      );
-
-      setOptionRows(prevRows =>
-        prevRows.map(row => ({
-          ...row,
-          callLTP: Math.max(5, parseFloat((row.callLTP + (Math.random() - 0.48) * 3).toFixed(2))),
-          putLTP: Math.max(5, parseFloat((row.putLTP + (Math.random() - 0.48) * 3).toFixed(2))),
-        }))
-      );
+      setWatchlistGroups(prevGroups => {
+        const updated = { ...prevGroups };
+        Object.keys(updated).forEach(grpKey => {
+          updated[grpKey] = updated[grpKey].map(stock => {
+            const delta = (Math.random() - 0.48) * (stock.price * 0.0015);
+            const newPrice = parseFloat((stock.price + delta).toFixed(2));
+            const newChangeNum = parseFloat((stock.changeNum + delta).toFixed(2));
+            const newChangePct = parseFloat(((newChangeNum / (newPrice - newChangeNum)) * 100).toFixed(2));
+            return {
+              ...stock,
+              price: newPrice,
+              changeNum: newChangeNum,
+              changePct: newChangePct,
+              isUp: delta >= 0,
+              high: Math.max(stock.high || newPrice, newPrice),
+              low: Math.min(stock.low || newPrice, newPrice)
+            };
+          });
+        });
+        return updated;
+      });
 
       setPositions(prevPos =>
         prevPos.map(pos => {
@@ -212,15 +252,30 @@ export default function App() {
     const sym = newStockInput.trim().toUpperCase();
     if (!sym) return;
 
-    if (stocks.some(s => s.name === sym)) {
-      alert(`${sym} आधीपासूनच वॉचलिस्टमध्ये आहे.`);
+    const currentList = watchlistGroups[activeWatchlistGroup] || [];
+    if (currentList.some(s => s.name === sym)) {
+      alert(`${sym} आधीपासूनच या वॉचलिस्ट ग्रुपमध्ये आहे.`);
       return;
     }
 
     const baseP = stockBasePrices[sym] || 1500.00;
-    setStocks([...stocks, { name: sym, price: baseP, change: '+0.50 (+0.03%)', isUp: true, high: baseP * 1.02, low: baseP * 0.98 }]);
+    const newStockObj = {
+      name: sym,
+      exchange: sym.includes('NIFTY') || sym.includes('BANK') ? 'NSE EQ' : 'NSE EQ',
+      price: baseP,
+      changeNum: 2.50,
+      changePct: 0.15,
+      isUp: true,
+      high: baseP * 1.02,
+      low: baseP * 0.98
+    };
+
+    setWatchlistGroups({
+      ...watchlistGroups,
+      [activeWatchlistGroup]: [...currentList, newStockObj]
+    });
     setNewStockInput('');
-    alert(`${sym} वॉचलिस्टमध्ये यशस्वीरीत्या जोडला गेला!`);
+    alert(`${sym} वॉचलिस्ट ग्रुप ${activeWatchlistGroup} मध्ये यशस्वीरीत्या जोडला गेला!`);
   };
 
   const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
@@ -267,7 +322,6 @@ export default function App() {
     }
   };
 
-  // Trade Analytics Calculations
   const allActiveTrades = [...holdings, ...positions];
   const totalTradesCount = orderHistory.length;
   const winsCount = allActiveTrades.filter(item => item.pnlVal > 0).length;
@@ -467,18 +521,38 @@ export default function App() {
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Upstox Style Watchlist Sidebar with Groups (1, 2, 3, 4, 5) */}
         <aside className="w-80 bg-[#12141c] border-r border-gray-800 flex flex-col hidden md:flex">
+          
+          {/* Watchlist Group Tabs (1, 2, 3, 4, 5) */}
+          <div className="bg-[#0b0e14] px-2 py-2 border-b border-gray-800 flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+              {['1', '2', '3', '4', '5'].map(grp => (
+                <button 
+                  key={grp}
+                  onClick={() => setActiveWatchlistGroup(grp)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${activeWatchlistGroup === grp ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800'}`}
+                >
+                  {grp}
+                </button>
+              ))}
+            </div>
+            <span className="text-[10px] text-purple-400 font-bold px-2 py-1 bg-purple-950/40 rounded border border-purple-500/30">
+              Group {activeWatchlistGroup} ({currentGroupStocks.length})
+            </span>
+          </div>
+
           <div className="p-3 border-b border-gray-800 space-y-2">
             <div className="flex items-center justify-between text-xs text-gray-400 font-semibold">
               <span>Watchlist (Live TBT)</span>
-              <span className="text-purple-400 font-bold">{stocks.length} Stocks</span>
+              <span className="text-gray-300 font-bold">{currentGroupStocks.length} Stocks</span>
             </div>
 
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-500"><FiSearch size={13} /></span>
               <input 
                 type="text" 
-                placeholder="Search stock eg: INFY, TCS..." 
+                placeholder="Search stock eg: RELIANCE, TCS..." 
                 value={watchlistSearch}
                 onChange={(e) => setWatchlistSearch(e.target.value)}
                 className="w-full bg-[#0b0e14] border border-gray-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-600"
@@ -488,23 +562,31 @@ export default function App() {
             <form onSubmit={handleAddStockToWatchlist} className="flex space-x-1 pt-1">
               <input 
                 type="text" 
-                placeholder="Add Symbol (e.g. WIPRO)" 
+                placeholder={`Add to Group ${activeWatchlistGroup} (e.g. INFY)`} 
                 value={newStockInput}
                 onChange={(e) => setNewStockInput(e.target.value)}
                 className="flex-1 bg-[#0b0e14] border border-gray-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-purple-600"
               />
-              <button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer">+</button>
+              <button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer" title="Add Stock">+</button>
             </form>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-gray-800/50">
-            {stocks
+            {currentGroupStocks
               .filter(stock => stock.name.toLowerCase().includes(watchlistSearch.toLowerCase()))
               .map((stock, idx) => (
                 <div key={idx} className={`p-3 hover:bg-gray-800/60 transition-all flex items-center justify-between cursor-pointer ${selectedStock === stock.name ? 'bg-gray-800/80 border-l-4 border-purple-600' : ''}`}>
                   <div onClick={() => setSelectedStock(stock.name)} className="flex-1">
-                    <p className="text-xs font-bold text-white">{stock.name}</p>
-                    <span className="text-[10px] text-gray-400">NSE ₹{stock.price.toFixed(2)}</span>
+                    <div className="flex items-center space-x-1.5">
+                      <p className="text-xs font-bold text-white">{stock.name}</p>
+                      <span className="text-[9px] bg-gray-800 text-gray-300 px-1 py-0.2 rounded font-mono">{stock.exchange || 'NSE EQ'}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-[11px] font-mono text-gray-200">₹{stock.price.toFixed(2)}</span>
+                      <span className={`text-[10px] font-mono font-bold ${stock.isUp ? 'text-green-400' : 'text-red-400'}`}>
+                        {stock.isUp ? '+' : ''}{stock.changeNum.toFixed(2)} ({stock.isUp ? '+' : ''}{stock.changePct.toFixed(2)}%)
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-1">
                     <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'holding', high: stock.high, low: stock.low })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
@@ -719,7 +801,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* Trade Analytics Report Tab */}
               {portfolioSubTab === 'analytics' && (
                 <div className="flex-1 space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -741,7 +822,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Win Rate Visual Bar */}
                   <div className="bg-[#0b0e14] border border-gray-800 p-4 rounded-xl">
                     <div className="flex justify-between text-xs mb-2">
                       <span className="font-bold text-gray-300">Performance Accuracy Meter</span>
@@ -763,7 +843,6 @@ export default function App() {
         </main>
       </div>
 
-      {/* Funds & Margin Management Dashboard Modal */}
       {showFundsModal && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl font-sans text-xs">
@@ -791,7 +870,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Share P&L Screenshot Card Modal */}
       {shareCardData && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-[#1b1f2e] via-[#12141c] to-[#0b0e14] border border-purple-500/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
@@ -863,7 +941,7 @@ export default function App() {
       {selectedOrderStock && (
         <div className="absolute right-0 top-0 h-full z-50 shadow-2xl">
           <PlaceOrderPanel 
-            stock={{ symbol: selectedOrderStock.symbol, price: selectedOrderStock.price, exchange: 'NSE', high: selectedOrderStock.high, low: selectedOrderStock.low }}
+            stock={{ symbol: selectedOrderStock.symbol, price: selectedOrderStock.price, exchange: 'NSE EQ', high: selectedOrderStock.high, low: selectedOrderStock.low }}
             actionType={selectedOrderStock.actionType}
             onClose={() => setSelectedOrderStock(null)}
             onPlaceOrder={(orderDetails) => {
