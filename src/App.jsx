@@ -21,7 +21,8 @@ const stockBasePrices = {
   'COALINDIA': 403.35,
   'HINDZINC': 571.60,
   'NIFTY 50': 24893.03,
-  'BANKNIFTY': 47595.12,
+  'BANKNIFTY': 61104.90,
+  'SENSEX': 81840.23,
   'RELIANCE': 2973.10,
   'TCS': 3942.49,
   'INFY': 1624.84,
@@ -59,7 +60,7 @@ export default function App() {
   const [shareCardData, setShareCardData] = useState(null);
   const [exitModalData, setExitModalData] = useState(null);
 
-  const [portfolioSubTab, setPortfolioSubTab] = useState('positions');
+  const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
   const [positions, setPositions] = useState([]);
   const [holdings, setHoldings] = useState([]);
   const [orderHistory, setOrderHistory] = useState([]);
@@ -233,6 +234,20 @@ export default function App() {
           };
         })
       );
+
+      setHoldings(prevHold =>
+        prevHold.map(h => {
+          const priceChange = (Math.random() - 0.48) * 2;
+          const newCurrVal = parseFloat((h.currentVal + priceChange).toFixed(2));
+          const pnlVal = parseFloat((newCurrVal - (h.avgPrice * 10)).toFixed(2));
+          return {
+            ...h,
+            currentVal: newCurrVal,
+            pnlVal: pnlVal,
+            pnl: `${pnlVal >= 0 ? '+' : ''}₹${pnlVal.toFixed(2)}`
+          };
+        })
+      );
     }, 1000);
 
     return () => clearInterval(timer);
@@ -279,7 +294,7 @@ export default function App() {
     alert(`${sym} वॉचलिस्ट ग्रुप ${activeWatchlistGroup} मध्ये यशस्वीरीत्या जोडला गेला!`);
   };
 
-  const executeTrade = (instrumentName, price, type, category = 'position', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
+  const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
     const tradeTime = new Date().toLocaleTimeString();
     
     if (orderType === 'GTT' && gttDetails) {
@@ -314,11 +329,20 @@ export default function App() {
     setOrderHistory([newTrade, ...orderHistory]);
     setUsedMargin(prev => prev + (price * 10));
 
-    // Always add to Positions as requested by user
-    setPositions(prevPositions => [newTrade, ...prevPositions]);
-    setPortfolioSubTab('positions');
-    setActiveTab('portfolio');
-    alert(`Successfully placed ${type} order for ${instrumentName} at ₹${price}! Added to Positions.`);
+    // जर हा स्टॉक (Equity) असेल तर Holdings मध्ये जाईल, आणि जर ऑप्शन (CE/PE) असेल तर Positions मध्ये जाईल
+    const isOption = instrumentName.includes('CE') || instrumentName.includes('PE');
+
+    if (isOption) {
+      setPositions(prev => [newTrade, ...prev]);
+      setPortfolioSubTab('positions');
+      setActiveTab('portfolio');
+      alert(`Successfully placed ${type} option order for ${instrumentName} at ₹${price}! Added to Positions.`);
+    } else {
+      setHoldings(prev => [newTrade, ...prev]);
+      setPortfolioSubTab('holdings');
+      setActiveTab('portfolio');
+      alert(`Successfully bought stock ${instrumentName} at ₹${price}! Added to Holdings.`);
+    }
   };
 
   const handleConfirmExit = () => {
@@ -326,10 +350,17 @@ export default function App() {
     const { type, item, orderType, limitPrice } = exitModalData;
     const finalPrice = orderType === 'Limit' ? parseFloat(limitPrice) || item.ltp : item.ltp;
 
-    setPositions(positions.filter(p => p.id !== item.id));
-    setTotalFunds(prev => prev + (finalPrice * 10) + item.pnlVal);
-    setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
-    alert(`Successfully squared off ${item.instrument} via ${orderType} order at ₹${finalPrice}!`);
+    if (type === 'holding') {
+      setHoldings(holdings.filter(h => h.id !== item.id));
+      setTotalFunds(prev => prev + (finalPrice * 10) + (item.pnlVal || 0));
+      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+      alert(`Successfully sold holding ${item.instrument} at ₹${finalPrice}!`);
+    } else {
+      setPositions(positions.filter(p => p.id !== item.id));
+      setTotalFunds(prev => prev + (finalPrice * 10) + item.pnlVal);
+      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+      alert(`Successfully squared off position ${item.instrument} at ₹${finalPrice}!`);
+    }
     setExitModalData(null);
   };
 
@@ -595,8 +626,8 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'position', high: stock.high, low: stock.low })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
-                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'position', high: stock.high, low: stock.low })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'BUY', category: 'holding', high: stock.high, low: stock.low })} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">B</button>
+                    <button onClick={() => setSelectedOrderStock({ symbol: stock.name, price: stock.price, actionType: 'SELL', category: 'holding', high: stock.high, low: stock.low })} className="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">S</button>
                   </div>
                 </div>
             ))}
@@ -609,8 +640,8 @@ export default function App() {
               <AdvancedChart 
                 symbol={selectedStock} 
                 ltp={currentStockObj.price} 
-                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'position', high: currentStockObj.high, low: currentStockObj.low })}
-                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'position', high: currentStockObj.high, low: currentStockObj.low })}
+                onBuy={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'BUY', category: 'holding', high: currentStockObj.high, low: currentStockObj.low })}
+                onSell={() => setSelectedOrderStock({ symbol: selectedStock, price: currentStockObj.price, actionType: 'SELL', category: 'holding', high: currentStockObj.high, low: currentStockObj.low })}
               />
             </div>
           )}
@@ -624,7 +655,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Expiry Selector Bar */}
               <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-3 border-b border-gray-800 text-xs">
                 <span className="text-gray-400 font-bold">Expiry:</span>
                 {expiryDates.map((exp) => (
@@ -714,22 +744,57 @@ export default function App() {
               </div>
 
               <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-4 overflow-x-auto whitespace-nowrap">
-                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'positions' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Positions ({positions.length})</button>
                 <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'holdings' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
+                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'positions' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Positions ({positions.length})</button>
                 <button onClick={() => setPortfolioSubTab('gtt')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'gtt' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
                 <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'history' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
                 <button onClick={() => setPortfolioSubTab('analytics')} className={`font-bold cursor-pointer pb-1 flex items-center gap-1 ${portfolioSubTab === 'analytics' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}><FiPieChart size={12}/> Trade Analytics Report</button>
               </div>
 
-              {portfolioSubTab === 'positions' && (
+              {portfolioSubTab === 'holdings' && (
                 <div className="overflow-x-auto flex-1">
-                  {positions.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No open positions. Buy or Sell options/stocks from Option Chain or Watchlist to see them here.</p>
+                  {holdings.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No holdings available. Buy stocks from watchlist or chart to see them here.</p>
                   ) : (
                     <table className="w-full text-center border-collapse">
                       <thead>
                         <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th><th className="p-2">Action / Square Off</th>
+                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action / Exit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {holdings.map(h => (
+                          <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/30">
+                            <td className="p-2 font-bold">{h.instrument}</td>
+                            <td className="p-2">{h.qty}</td>
+                            <td className="p-2 font-mono">₹{h.avgPrice}</td>
+                            <td className="p-2 text-amber-400 font-mono">₹{h.currentVal.toFixed(2)}</td>
+                            <td className={`p-2 font-bold font-mono ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
+                            <td className="p-2 space-x-1.5 flex justify-center items-center">
+                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow">
+                                <FiShare2 size={11}/> Share
+                              </button>
+                              <button onClick={() => setExitModalData({ type: 'holding', item: h, orderType: 'Market', limitPrice: h.currentVal / 10 })} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">
+                                Exit / Sell
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
+              {portfolioSubTab === 'positions' && (
+                <div className="overflow-x-auto flex-1">
+                  {positions.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No open positions.</p>
+                  ) : (
+                    <table className="w-full text-center border-collapse">
+                      <thead>
+                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
+                          <th className="p-2">Instrument</th><th className="p-2">Type</th><th className="p-2">Qty</th><th className="p-2">Avg Price</th><th className="p-2">LTP</th><th className="p-2">P&L</th><th className="p-2">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -744,36 +809,6 @@ export default function App() {
                             <td className="p-2 space-x-1.5 flex justify-center items-center">
                               <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Share</button>
                               <button onClick={() => setExitModalData({ type: 'position', item: p, orderType: 'Market', limitPrice: p.ltp })} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Square Off</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-
-              {portfolioSubTab === 'holdings' && (
-                <div className="overflow-x-auto flex-1">
-                  {holdings.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No holdings available.</p>
-                  ) : (
-                    <table className="w-full text-center border-collapse">
-                      <thead>
-                        <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800">
-                          <th className="p-2">Stock Name</th><th className="p-2">Qty</th><th className="p-2">Buy Price</th><th className="p-2">Current Value</th><th className="p-2">P&L</th><th className="p-2">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {holdings.map(h => (
-                          <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/30">
-                            <td className="p-2 font-bold">{h.instrument}</td>
-                            <td className="p-2">{h.qty}</td>
-                            <td className="p-2 font-mono">₹{h.avgPrice}</td>
-                            <td className="p-2 text-amber-400 font-mono">₹{h.currentVal.toFixed(2)}</td>
-                            <td className={`p-2 font-bold font-mono ${h.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl}</td>
-                            <td className="p-2">
-                              <button onClick={() => setShareCardData(h)} className="bg-purple-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Share</button>
                             </td>
                           </tr>
                         ))}
@@ -882,7 +917,7 @@ export default function App() {
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-xs space-y-4">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <span>Square Off:</span> <span className="text-purple-400">{exitModalData.item.instrument}</span>
+                <span>{exitModalData.type === 'holding' ? 'Exit / Sell Stock:' : 'Square Off:'}</span> <span className="text-purple-400">{exitModalData.item.instrument}</span>
               </h3>
               <button onClick={() => setExitModalData(null)} className="text-gray-400 hover:text-white cursor-pointer"><FiX size={16}/></button>
             </div>
@@ -908,7 +943,7 @@ export default function App() {
 
             <div className="flex space-x-2 pt-2">
               <button onClick={() => setExitModalData(null)} className="flex-1 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold cursor-pointer">Cancel</button>
-              <button onClick={handleConfirmExit} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold cursor-pointer shadow-lg">Confirm Square Off</button>
+              <button onClick={handleConfirmExit} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold cursor-pointer shadow-lg">Confirm {exitModalData.type === 'holding' ? 'Sell' : 'Square Off'}</button>
             </div>
           </div>
         </div>
@@ -964,7 +999,7 @@ export default function App() {
                 orderDetails.symbol, 
                 orderDetails.price, 
                 orderDetails.action, 
-                selectedOrderStock.category || 'position', 
+                selectedOrderStock.category || 'holding', 
                 orderDetails.quantity, 
                 orderDetails.orderType, 
                 orderDetails.gttDetails
