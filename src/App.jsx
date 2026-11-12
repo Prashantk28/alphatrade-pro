@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown, FiX } from 'react-icons/fi';
 import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
@@ -56,6 +56,9 @@ export default function App() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showFundsModal, setShowFundsModal] = useState(false);
   const [shareCardData, setShareCardData] = useState(null);
+
+  // Exit / Limit Modal State for Holdings & Positions
+  const [exitModalData, setExitModalData] = useState(null); // { type: 'holding'|'position', item, orderType: 'Market'|'Limit', limitPrice: '' }
 
   const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
   const [positions, setPositions] = useState([]);
@@ -334,27 +337,26 @@ export default function App() {
     }
   };
 
-  // Exit / Sell Holding stock
-  const handleExitHolding = (id) => {
-    const item = holdings.find(h => h.id === id);
-    if (!item) return;
-    setHoldings(holdings.filter(h => h.id !== id));
-    setTotalFunds(prev => prev + item.currentVal);
-    setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
-    alert(`Successfully exited / sold ${item.instrument}! Funds updated.`);
+  // Confirm Exit / Limit Sell for Holding or Position
+  const handleConfirmExit = () => {
+    if (!exitModalData) return;
+    const { type, item, orderType, limitPrice } = exitModalData;
+    const finalPrice = orderType === 'Limit' ? parseFloat(limitPrice) || item.currentVal / 10 || item.ltp : (item.currentVal / 10 || item.ltp);
+
+    if (type === 'holding') {
+      setHoldings(holdings.filter(h => h.id !== item.id));
+      setTotalFunds(prev => prev + (finalPrice * 10));
+      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+      alert(`Successfully sold ${item.instrument} via ${orderType} order at ₹${finalPrice}!`);
+    } else if (type === 'position') {
+      setPositions(positions.filter(p => p.id !== item.id));
+      setTotalFunds(prev => prev + (finalPrice * 10) + item.pnlVal);
+      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+      alert(`Successfully squared off ${item.instrument} via ${orderType} order at ₹${finalPrice}!`);
+    }
+    setExitModalData(null);
   };
 
-  // Square off Position
-  const handleSquareOffPosition = (id) => {
-    const item = positions.find(p => p.id === id);
-    if (!item) return;
-    setPositions(positions.filter(p => p.id !== id));
-    setTotalFunds(prev => prev + (item.ltp * 10) + item.pnlVal);
-    setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
-    alert(`Successfully squared off position for ${item.instrument}!`);
-  };
-
-  // Cancel GTT Order
   const handleCancelGtt = (id) => {
     setGttOrders(gttOrders.filter(g => g.id !== id));
     alert("GTT Order cancelled successfully.");
@@ -624,7 +626,7 @@ export default function App() {
                               <button onClick={() => setShareCardData(h)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow">
                                 <FiShare2 size={11}/> Share
                               </button>
-                              <button onClick={() => handleExitHolding(h.id)} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">
+                              <button onClick={() => setExitModalData({ type: 'holding', item: h, orderType: 'Market', limitPrice: h.currentVal / 10 })} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">
                                 Exit / Sell
                               </button>
                             </td>
@@ -658,7 +660,7 @@ export default function App() {
                             <td className={`p-2 font-bold font-mono ${p.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{p.pnl}</td>
                             <td className="p-2 space-x-1.5 flex justify-center items-center">
                               <button onClick={() => setShareCardData(p)} className="bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Share</button>
-                              <button onClick={() => handleSquareOffPosition(p.id)} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Square Off</button>
+                              <button onClick={() => setExitModalData({ type: 'position', item: p, orderType: 'Market', limitPrice: p.ltp })} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer shadow">Square Off</button>
                             </td>
                           </tr>
                         ))}
@@ -764,6 +766,45 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Exit / Limit Sell Modal for Holdings & Positions */}
+      {exitModalData && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-xs space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <span>Exit Order:</span> <span className="text-purple-400">{exitModalData.item.instrument}</span>
+              </h3>
+              <button onClick={() => setExitModalData(null)} className="text-gray-400 hover:text-white cursor-pointer"><FiX size={16}/></button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex space-x-2 bg-[#0b0e14] p-1 rounded-lg">
+                <button onClick={() => setExitModalData({ ...exitModalData, orderType: 'Market' })} className={`flex-1 py-1.5 rounded font-bold cursor-pointer ${exitModalData.orderType === 'Market' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>Market</button>
+                <button onClick={() => setExitModalData({ ...exitModalData, orderType: 'Limit' })} className={`flex-1 py-1.5 rounded font-bold cursor-pointer ${exitModalData.orderType === 'Limit' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>Limit Price</button>
+              </div>
+
+              {exitModalData.orderType === 'Limit' && (
+                <div>
+                  <label className="text-gray-400 block mb-1">Set Target / Limit Price (₹)</label>
+                  <input 
+                    type="number" 
+                    value={exitModalData.limitPrice} 
+                    onChange={(e) => setExitModalData({ ...exitModalData, limitPrice: e.target.value })} 
+                    className="w-full bg-[#0b0e14] border border-gray-800 rounded px-3 py-2 text-white font-mono font-bold"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">Set price higher for profit booking or lower for stoploss.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-2 pt-2">
+              <button onClick={() => setExitModalData(null)} className="flex-1 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold cursor-pointer">Cancel</button>
+              <button onClick={handleConfirmExit} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold cursor-pointer shadow-lg">Confirm Exit</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showFundsModal && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
