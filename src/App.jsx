@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown, FiX } from 'react-icons/fi';
+import { FiSettings, FiSearch, FiUser, FiHelpCircle, FiMessageSquare, FiLogOut, FiFileText, FiShare2, FiPieChart, FiDollarSign, FiPlusCircle, FiAward, FiTrendingUp, FiTrendingDown, FiX, FiEdit2, FiPlus } from 'react-icons/fi';
 import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
@@ -39,7 +39,19 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
+  // **डायनॅमिक वॉचलिस्ट ग्रुप्स आणि नावे (Dynamic Watchlist Groups & Custom Names)**
+  const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(['1', '2', '3', '4', '5']);
+  const [watchlistGroupNames, setWatchlistGroupNames] = useState({
+    '1': 'Group 1',
+    '2': 'Group 2',
+    '3': 'Group 3',
+    '4': 'Group 4',
+    '5': 'Group 5'
+  });
   const [activeWatchlistGroup, setActiveWatchlistGroup] = useState('1');
+  const [editingGroupNameKey, setEditingGroupNameKey] = useState(null);
+  const [tempGroupNameInput, setTempGroupNameInput] = useState('');
+
   const [watchlistSearch, setWatchlistSearch] = useState('');
   const [newStockInput, setNewStockInput] = useState('');
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('SENSEX');
@@ -247,6 +259,24 @@ export default function App() {
     }
   };
 
+  const handleAddNewWatchlistGroup = () => {
+    const newKey = `group_${Date.now()}`;
+    const newName = `My Group ${watchlistGroupKeys.length + 1}`;
+    setWatchlistGroupKeys([...watchlistGroupKeys, newKey]);
+    setWatchlistGroupNames({ ...watchlistGroupNames, [newKey]: newName });
+    setWatchlistGroups({ ...watchlistGroups, [newKey]: [] });
+    setActiveWatchlistGroup(newKey);
+    alert(`New Watchlist Group created successfully!`);
+  };
+
+  const handleSaveGroupName = (key) => {
+    if (tempGroupNameInput.trim() !== '') {
+      setWatchlistGroupNames({ ...watchlistGroupNames, [key]: tempGroupNameInput.trim() });
+    }
+    setEditingGroupNameKey(null);
+    setTempGroupNameInput('');
+  };
+
   const handleAddStockToWatchlist = (e) => {
     e.preventDefault();
     const sym = newStockInput.trim().toUpperCase();
@@ -275,7 +305,7 @@ export default function App() {
       [activeWatchlistGroup]: [...currentList, newStockObj]
     });
     setNewStockInput('');
-    alert(`${sym} वॉचलिस्ट ग्रुप ${activeWatchlistGroup} मध्ये यशस्वीरीत्या जोडला गेला!`);
+    alert(`${sym} वॉचलिस्ट ग्रुपमध्ये यशस्वीरीत्या जोडला गेला!`);
   };
 
   const executeTrade = (instrumentName, price, type, category = 'holding', quantity = 1, orderType = 'REGULAR', gttDetails = null) => {
@@ -554,21 +584,62 @@ export default function App() {
 
       <div className="flex-1 flex overflow-hidden relative">
         <aside className="w-80 bg-[#12141c] border-r border-gray-800 flex flex-col hidden md:flex">
-          <div className="bg-[#0b0e14] px-2 py-2 border-b border-gray-800 flex items-center justify-between">
-            <div className="flex items-center space-x-1">
-              {['1', '2', '3', '4', '5'].map(grp => (
+          
+          {/* Watchlist Group Tabs & Add Button */}
+          <div className="bg-[#0b0e14] px-2 py-2 border-b border-gray-800 flex items-center justify-between gap-1 overflow-x-auto">
+            <div className="flex items-center space-x-1 overflow-x-auto py-0.5">
+              {watchlistGroupKeys.map((grpKey, index) => (
                 <button 
-                  key={grp}
-                  onClick={() => setActiveWatchlistGroup(grp)}
-                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${activeWatchlistGroup === grp ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800'}`}
+                  key={grpKey}
+                  onClick={() => setActiveWatchlistGroup(grpKey)}
+                  className={`px-2.5 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center whitespace-nowrap ${activeWatchlistGroup === grpKey ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800'}`}
+                  title={watchlistGroupNames[grpKey] || `Group ${index + 1}`}
                 >
-                  {grp}
+                  {index + 1}
                 </button>
               ))}
             </div>
-            <span className="text-[10px] text-purple-400 font-bold px-2 py-1 bg-purple-950/40 rounded border border-purple-500/30">
-              Group {activeWatchlistGroup} ({currentGroupStocks.length})
-            </span>
+
+            <button 
+              onClick={handleAddNewWatchlistGroup}
+              className="bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center cursor-pointer transition-all shrink-0"
+              title="Add New Watchlist Group"
+            >
+              <FiPlus size={14}/>
+            </button>
+          </div>
+
+          {/* Active Group Header with Name Editing Support */}
+          <div className="px-3 py-2 bg-[#12141c] border-b border-gray-800 flex items-center justify-between">
+            {editingGroupNameKey === activeWatchlistGroup ? (
+              <div className="flex items-center space-x-1 w-full">
+                <input 
+                  type="text" 
+                  value={tempGroupNameInput} 
+                  onChange={(e) => setTempGroupNameInput(e.target.value)}
+                  className="bg-[#0b0e14] border border-purple-500 text-white px-2 py-0.5 rounded text-xs flex-1 focus:outline-none"
+                  placeholder="Enter Group Name..."
+                  autoFocus
+                />
+                <button onClick={() => handleSaveGroupName(activeWatchlistGroup)} className="bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">Save</button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-xs text-purple-400 font-bold flex items-center gap-1.5">
+                  📁 {watchlistGroupNames[activeWatchlistGroup] || 'Watchlist Group'} ({currentGroupStocks.length})
+                </span>
+                <button 
+                  onClick={() => {
+                    setEditingGroupNameKey(activeWatchlistGroup);
+                    setTempGroupNameInput(watchlistGroupNames[activeWatchlistGroup] || '');
+                  }} 
+                  className="text-gray-400 hover:text-white p-1 cursor-pointer"
+                  title="Rename Group"
+                >
+                  <FiEdit2 size={12}/>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="p-3 border-b border-gray-800 space-y-2">
@@ -591,7 +662,7 @@ export default function App() {
             <form onSubmit={handleAddStockToWatchlist} className="flex space-x-1 pt-1">
               <input 
                 type="text" 
-                placeholder={`Add to Group ${activeWatchlistGroup} (e.g. INFY)`} 
+                placeholder="Add symbol (e.g. INFY)" 
                 value={newStockInput}
                 onChange={(e) => setNewStockInput(e.target.value)}
                 className="flex-1 bg-[#0b0e14] border border-gray-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-purple-600"
