@@ -39,7 +39,7 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
-  // **localStorage वापरून वॉचलिस्ट ग्रुप्स, नावे आणि त्यातील स्टॉक्स कायमस्वरूपी सेव्ह करणे**
+  // **localStorage वापरून वॉचलिस्ट, पोझिशन्स, होल्डिंग्स आणि ऑर्डर्स कायमस्वरूपी सेव्ह करणे**
   const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(() => {
     const savedKeys = localStorage.getItem('watchlist_group_keys');
     return savedKeys ? JSON.parse(savedKeys) : ['1', '2', '3', '4', '5'];
@@ -115,13 +115,37 @@ export default function App() {
   const [exitModalData, setExitModalData] = useState(null);
 
   const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
-  const [positions, setPositions] = useState([]);
-  const [holdings, setHoldings] = useState([]);
-  const [orderHistory, setOrderHistory] = useState([]);
-  const [gttOrders, setGttOrders] = useState([]);
 
-  const [totalFunds, setTotalFunds] = useState(500000.00);
-  const [usedMargin, setUsedMargin] = useState(14500.00);
+  // **Positions, Holdings, GTT & Order History localStorage persistence**
+  const [positions, setPositions] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_positions');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [holdings, setHoldings] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_holdings');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [orderHistory, setOrderHistory] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_orders');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [gttOrders, setGttOrders] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_gtt');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [totalFunds, setTotalFunds] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_funds');
+    return saved ? parseFloat(saved) : 500000.00;
+  });
+
+  const [usedMargin, setUsedMargin] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_margin');
+    return saved ? parseFloat(saved) : 14500.00;
+  });
 
   const [email, setEmail] = useState('pkamble.kvic@hokvic.gov.in');
   const [password, setPassword] = useState('••••••••');
@@ -226,8 +250,8 @@ export default function App() {
         })
       );
 
-      setPositions(prevPos =>
-        prevPos.map(pos => {
+      setPositions(prevPos => {
+        const updated = prevPos.map(pos => {
           const priceChange = (Math.random() - 0.48) * 3;
           const newLtp = parseFloat((pos.ltp + priceChange).toFixed(2));
           const diff = pos.type === 'BUY' ? (newLtp - pos.avgPrice) : (pos.avgPrice - newLtp);
@@ -238,11 +262,13 @@ export default function App() {
             pnlVal: totalPnlVal,
             pnl: `${totalPnlVal >= 0 ? '+' : ''}₹${totalPnlVal.toFixed(2)}`
           };
-        })
-      );
+        });
+        localStorage.setItem('paper_trading_positions', JSON.stringify(updated));
+        return updated;
+      });
 
-      setHoldings(prevHold =>
-        prevHold.map(h => {
+      setHoldings(prevHold => {
+        const updated = prevHold.map(h => {
           const priceChange = (Math.random() - 0.48) * 2;
           const newCurrVal = parseFloat((h.currentVal + priceChange).toFixed(2));
           const pnlVal = parseFloat((newCurrVal - (h.avgPrice * 10)).toFixed(2));
@@ -252,8 +278,10 @@ export default function App() {
             pnlVal: pnlVal,
             pnl: `${pnlVal >= 0 ? '+' : ''}₹${pnlVal.toFixed(2)}`
           };
-        })
-      );
+        });
+        localStorage.setItem('paper_trading_holdings', JSON.stringify(updated));
+        return updated;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
@@ -348,7 +376,9 @@ export default function App() {
         status: 'ACTIVE (TRIGGER PENDING)',
         time: tradeTime
       };
-      setGttOrders([gttItem, ...gttOrders]);
+      const updatedGtt = [gttItem, ...gttOrders];
+      setGttOrders(updatedGtt);
+      localStorage.setItem('paper_trading_gtt', JSON.stringify(updatedGtt));
       alert(`GTT OCO Order placed successfully for ${instrumentName}! Stoploss: ₹${gttDetails.stoploss}, Target: ₹${gttDetails.target}`);
       return;
     }
@@ -367,18 +397,27 @@ export default function App() {
       currentVal: price * 10
     };
 
-    setOrderHistory([newTrade, ...orderHistory]);
-    setUsedMargin(prev => prev + (price * 10));
+    const updatedOrders = [newTrade, ...orderHistory];
+    setOrderHistory(updatedOrders);
+    localStorage.setItem('paper_trading_orders', JSON.stringify(updatedOrders));
+
+    const newMargin = usedMargin + (price * 10);
+    setUsedMargin(newMargin);
+    localStorage.setItem('paper_trading_margin', newMargin.toString());
 
     const isOption = instrumentName.includes('CE') || instrumentName.includes('PE');
 
     if (isOption) {
-      setPositions(prev => [newTrade, ...prev]);
+      const updatedPos = [newTrade, ...positions];
+      setPositions(updatedPos);
+      localStorage.setItem('paper_trading_positions', JSON.stringify(updatedPos));
       setPortfolioSubTab('positions');
       setActiveTab('portfolio');
       alert(`Successfully placed ${type} option order for ${instrumentName} at ₹${price}! Added to Positions.`);
     } else {
-      setHoldings(prev => [newTrade, ...prev]);
+      const updatedHold = [newTrade, ...holdings];
+      setHoldings(updatedHold);
+      localStorage.setItem('paper_trading_holdings', JSON.stringify(updatedHold));
       setPortfolioSubTab('holdings');
       setActiveTab('portfolio');
       alert(`Successfully bought stock ${instrumentName} at ₹${price}! Added to Holdings.`);
@@ -391,14 +430,32 @@ export default function App() {
     const finalPrice = orderType === 'Limit' ? parseFloat(limitPrice) || item.ltp : item.ltp;
 
     if (type === 'holding') {
-      setHoldings(holdings.filter(h => h.id !== item.id));
-      setTotalFunds(prev => prev + (finalPrice * 10) + (item.pnlVal || 0));
-      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+      const updatedHoldings = holdings.filter(h => h.id !== item.id);
+      setHoldings(updatedHoldings);
+      localStorage.setItem('paper_trading_holdings', JSON.stringify(updatedHoldings));
+
+      const newFunds = totalFunds + (finalPrice * 10) + (item.pnlVal || 0);
+      setTotalFunds(newFunds);
+      localStorage.setItem('paper_trading_funds', newFunds.toString());
+
+      const newMargin = Math.max(0, usedMargin - (item.avgPrice * 10));
+      setUsedMargin(newMargin);
+      localStorage.setItem('paper_trading_margin', newMargin.toString());
+
       alert(`Successfully sold holding ${item.instrument} at ₹${finalPrice}!`);
     } else {
-      setPositions(positions.filter(p => p.id !== item.id));
-      setTotalFunds(prev => prev + (finalPrice * 10) + item.pnlVal);
-      setUsedMargin(prev => Math.max(0, prev - (item.avgPrice * 10)));
+      const updatedPositions = positions.filter(p => p.id !== item.id);
+      setPositions(updatedPositions);
+      localStorage.setItem('paper_trading_positions', JSON.stringify(updatedPositions));
+
+      const newFunds = totalFunds + (finalPrice * 10) + item.pnlVal;
+      setTotalFunds(newFunds);
+      localStorage.setItem('paper_trading_funds', newFunds.toString());
+
+      const newMargin = Math.max(0, usedMargin - (item.avgPrice * 10));
+      setUsedMargin(newMargin);
+      localStorage.setItem('paper_trading_margin', newMargin.toString());
+
       alert(`Successfully squared off position ${item.instrument} at ₹${finalPrice}!`);
     }
     setExitModalData(null);
@@ -1096,7 +1153,11 @@ export default function App() {
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl font-sans text-xs">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-bold text-green-400 flex items-center gap-2"><FiDollarSign/> Funds & Margin Dashboard</h3>
-              <button onClick={() => setTotalFunds(prev => prev + 100000)} className="bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-300 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer">
+              <button onClick={() => {
+                const newFunds = totalFunds + 100000;
+                setTotalFunds(newFunds);
+                localStorage.setItem('paper_trading_funds', newFunds.toString());
+              }} className="bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-300 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer">
                 <FiPlusCircle size={12}/> + Add ₹1,00,000
               </button>
             </div>
