@@ -1,33 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiTrendingUp, FiTrendingDown, FiActivity, FiAward, FiZap, FiLayers, FiBarChart2, FiBriefcase, FiArrowUpRight } from 'react-icons/fi';
 
 export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
   const [activeSubNav, setActiveSubNav] = useState('all');
 
-  const trendingStocks = [
-    { symbol: 'TDPOWERSYS', price: 653.40, change: '+27.40', pct: '+4.38%', isUp: true },
-    { symbol: 'COALINDIA', price: 404.00, change: '-0.40', pct: '-0.10%', isUp: false },
-    { symbol: 'GOLDBEES', price: 111.74, change: '-0.97', pct: '-0.86%', isUp: false },
-    { symbol: 'TATAGOLD', price: 13.17, change: '-0.11', pct: '-0.83%', isUp: false },
-    { symbol: 'SILVERBEES', price: 168.71, change: '-2.66', pct: '-1.55%', isUp: false },
-    { symbol: 'CUPID', price: 369.55, change: '-15.20', pct: '-3.95%', isUp: false },
-  ];
+  const [indexSnapshots, setIndexSnapshots] = useState([
+    { name: 'NIFTY 50', price: 25119.45, pct: '-0.71%', isUp: false },
+    { name: 'SENSEX', price: 81492.71, pct: '-0.51%', isUp: false },
+    { name: 'BANKNIFTY', price: 61027.85, pct: '-0.80%', isUp: false },
+    { name: 'FINNIFTY', price: 27766.80, pct: '-1.03%', isUp: false },
+    { name: 'MIDCPNIFTY', price: 14324.05, pct: '+0.01%', isUp: true },
+  ]);
 
-  const trendingOptions = [
+  const [trendingStocks, setTrendingStocks] = useState([
+    { symbol: 'TDPOWERSYS', price: 653.40, change: 27.40, pct: '+4.38%', isUp: true },
+    { symbol: 'COALINDIA', price: 404.00, change: -0.40, pct: '-0.10%', isUp: false },
+    { symbol: 'GOLDBEES', price: 111.74, change: -0.97, pct: '-0.86%', isUp: false },
+    { symbol: 'TATAGOLD', price: 13.17, change: -0.11, pct: '-0.83%', isUp: false },
+    { symbol: 'SILVERBEES', price: 168.71, change: -2.66, pct: '-1.55%', isUp: false },
+    { symbol: 'CUPID', price: 369.55, change: -15.20, pct: '-3.95%', isUp: false },
+  ]);
+
+  const [trendingOptions, setTrendingOptions] = useState([
     { symbol: 'NIFTY 17 NOV 25100 CE', tag: 'ATM', ltp: 164.20, change: '-119.75 (-42.17%)', oi: '+82.29L (+812.7%)', isUp: false },
     { symbol: 'NIFTY 17 NOV 25150 CE', tag: 'OTM +1', ltp: 138.90, change: '-114.00 (-45.08%)', oi: '+78.45L (+1298.7%)', isUp: false },
     { symbol: 'NIFTY 17 NOV 25200 CE', tag: 'OTM +2', ltp: 117.25, change: '-108.00 (-47.95%)', oi: '+150.01L (+456.5%)', isUp: false },
     { symbol: 'NIFTY 17 NOV 25250 CE', tag: 'OTM +3', ltp: 97.60, change: '-100.65 (-50.77%)', oi: '+87.81L (+179.9%)', isUp: false },
     { symbol: 'NIFTY 17 NOV 25300 CE', tag: 'OTM +4', ltp: 81.00, change: '-93.85 (-53.67%)', oi: '+124.11L (+75.9%)', isUp: false },
-  ];
+  ]);
 
-  const momentumGainers = [
-    { symbol: 'NIFTY 17 NOV 25200 PE', ltp: 183.90, pct: '+30.98%', vol: '23.73 Cr', iv: '14.00', oi: '+76.26L (+109.7%)' },
-    { symbol: 'NIFTY 17 NOV 25150 PE', ltp: 156.40, pct: '+30.77%', vol: '16.13 Cr', iv: '13.95', oi: '+60.08L (+276.9%)' },
-    { symbol: 'NIFTY 17 NOV 25050 PE', ltp: 108.55, pct: '+30.16%', vol: '9.56 Cr', iv: '13.90', oi: '+44.42L (+252.6%)' },
-    { symbol: 'NIFTY 17 NOV 25000 PE', ltp: 89.00, pct: '+29.74%', vol: '22.59 Cr', iv: '13.87', oi: '+125.69L (+60.1%)' },
-    { symbol: 'NIFTY 17 NOV 24950 PE', ltp: 72.50, pct: '+29.12%', vol: '6.81 Cr', iv: '13.83', oi: '+37.51L (+83.7%)' },
-  ];
+  const [momentumGainers, setMomentumGainers] = useState([
+    { symbol: 'NIFTY 17 NOV 25200 PE', ltp: 183.90, pct: '+30.98%', vol: '23.73 Cr', iv: '14.00', oi: '+76.26L (+109.7%)', isUp: true },
+    { symbol: 'NIFTY 17 NOV 25150 PE', ltp: 156.40, pct: '+30.77%', vol: '16.13 Cr', iv: '13.95', oi: '+60.08L (+276.9%)', isUp: true },
+    { symbol: 'NIFTY 17 NOV 25050 PE', ltp: 108.55, pct: '+30.16%', vol: '9.56 Cr', iv: '13.90', oi: '+44.42L (+252.6%)', isUp: true },
+    { symbol: 'NIFTY 17 NOV 25000 PE', ltp: 89.00, pct: '+29.74%', vol: '22.59 Cr', iv: '13.87', oi: '+125.69L (+60.1%)', isUp: true },
+    { symbol: 'NIFTY 17 NOV 24950 PE', ltp: 72.50, pct: '+29.12%', vol: '6.81 Cr', iv: '13.83', oi: '+37.51L (+83.7%)', isUp: true },
+  ]);
 
   const advisoryCalls = [
     { action: 'BUY', instrument: 'BANKNIFTY 61000 PE', expiry: '23 NOV 26', ltp: 672.00, entry: 799.00, sl: 349.00, target: 1799.00, potential: '171.20%', time: '12:21 PM' },
@@ -48,20 +56,20 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
     { strike: '25,400', call: 130, put: 25 },
   ];
 
-  const mtfStocks = [
+  const [mtfStocks, setMtfStocks] = useState([
     { symbol: 'BSE', ltp: 3923.80, pct: '+0.38%', payOnly: 1221.87, isUp: true },
     { symbol: 'HDFCBANK', ltp: 801.10, pct: '-1.38%', payOnly: 184.25, isUp: false },
     { symbol: 'SUZLON', ltp: 38.40, pct: '-1.18%', payOnly: 11.22, isUp: false },
     { symbol: 'TATAGOLD', ltp: 13.17, pct: '-0.83%', payOnly: 6.58, isUp: false },
     { symbol: 'IDEA', ltp: 12.56, pct: '-3.16%', payOnly: 4.14, isUp: false },
-  ];
+  ]);
 
-  const commoditiesFutures = [
-    { symbol: 'CRUDEOIL 09 DEC 8000 CE', type: 'MCX OPT', ltp: 624.90, pct: '+12.86%', vol: 'High', isUp: true },
-    { symbol: 'CRUDEOIL 09 DEC 8300 CE', type: 'MCX OPT', ltp: 455.00, pct: '+15.37%', vol: 'High', isUp: true },
-    { symbol: 'PNB FUT (23 NOV)', type: 'NFO FUT', ltp: 144.55, pct: '+1.65%', vol: '3.88 Cr', isUp: true },
-    { symbol: 'IDEA FUT (23 NOV)', type: 'NFO FUT', ltp: 12.57, pct: '-2.86%', vol: '29.17 Cr', isUp: false },
-  ];
+  const [commoditiesFutures, setCommoditiesFutures] = useState([
+    { symbol: 'CRUDEOIL 09 DEC 8000 CE', type: 'MCX OPT', ltp: 624.90, pct: '+12.86%', isUp: true },
+    { symbol: 'CRUDEOIL 09 DEC 8300 CE', type: 'MCX OPT', ltp: 455.00, pct: '+15.37%', isUp: true },
+    { symbol: 'PNB FUT (23 NOV)', type: 'NFO FUT', ltp: 144.55, pct: '+1.65%', isUp: true },
+    { symbol: 'IDEA FUT (23 NOV)', type: 'NFO FUT', ltp: 12.57, pct: '-2.86%', isUp: false },
+  ]);
 
   const buzzingStocks = [
     { symbol: 'OLAELEC', price: 34.51, pct: '-3.44%', isUp: false, news: 'Demand no longer a constraint; supply limits growth now' },
@@ -81,14 +89,6 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
     { name: 'FabIndia IPO', sector: 'Retail & Apparel', status: 'Opens Soon' },
   ];
 
-  const indexSnapshots = [
-    { name: 'NIFTY 50', price: '25,119.45', pct: '-0.71%', isUp: false },
-    { name: 'SENSEX', price: '81,492.71', pct: '-0.51%', isUp: false },
-    { name: 'BANKNIFTY', price: '61,027.85', pct: '-0.80%', isUp: false },
-    { name: 'FINNIFTY', price: '27,766.80', pct: '-1.03%', isUp: false },
-    { name: 'MIDCPNIFTY', price: '14,324.05', pct: '+0.01%', isUp: true },
-  ];
-
   const quickTools = [
     { label: 'Option Chain', action: () => onOpenOptionChain('NIFTY 50') },
     { label: 'OI Analysis', action: () => setActiveSubNav('fno') },
@@ -98,6 +98,56 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
     { label: 'Upcoming IPOs', action: () => setActiveSubNav('ipo') },
     { label: 'All Overview', action: () => setActiveSubNav('all') },
   ];
+
+  // **LIVE PRICE FLUCTUATION EFFECT (हर 1 सेकंदाला प्राईस बदलणार)**
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // 1. Index Ticker Update
+      setIndexSnapshots(prev => prev.map(idx => {
+        const delta = (Math.random() - 0.48) * 15;
+        const newPrice = parseFloat((idx.price + delta).toFixed(2));
+        return { ...idx, price: newPrice, isUp: delta >= 0 };
+      }));
+
+      // 2. Trending Stocks Update
+      setTrendingStocks(prev => prev.map(st => {
+        const delta = (Math.random() - 0.48) * (st.price * 0.003);
+        const newPrice = parseFloat((st.price + delta).toFixed(2));
+        return { ...st, price: newPrice, isUp: delta >= 0 };
+      }));
+
+      // 3. Trending Options Update
+      setTrendingOptions(prev => prev.map(opt => {
+        const delta = (Math.random() - 0.48) * 3;
+        const newLtp = Math.max(2.00, parseFloat((opt.ltp + delta).toFixed(2)));
+        return { ...opt, ltp: newLtp, isUp: delta >= 0 };
+      }));
+
+      // 4. Momentum Gainers Update
+      setMomentumGainers(prev => prev.map(mg => {
+        const delta = (Math.random() - 0.48) * 2;
+        const newLtp = Math.max(2.00, parseFloat((mg.ltp + delta).toFixed(2)));
+        return { ...mg, ltp: newLtp, isUp: delta >= 0 };
+      }));
+
+      // 5. MTF Stocks Update
+      setMtfStocks(prev => prev.map(m => {
+        const delta = (Math.random() - 0.48) * (m.ltp * 0.002);
+        const newLtp = parseFloat((m.ltp + delta).toFixed(2));
+        return { ...m, ltp: newLtp, isUp: delta >= 0 };
+      }));
+
+      // 6. Commodities & Futures Update
+      setCommoditiesFutures(prev => prev.map(cf => {
+        const delta = (Math.random() - 0.48) * 4;
+        const newLtp = Math.max(5.00, parseFloat((cf.ltp + delta).toFixed(2)));
+        return { ...cf, ltp: newLtp, isUp: delta >= 0 };
+      }));
+
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="space-y-6 pb-10 font-sans text-gray-100">
@@ -112,7 +162,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
           >
             <div>
               <p className="text-[11px] font-bold text-gray-400">{idx.name}</p>
-              <p className="text-sm font-mono font-bold text-white mt-0.5">{idx.price}</p>
+              <p className="text-sm font-mono font-bold text-white mt-0.5">{idx.price.toLocaleString()}</p>
             </div>
             <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${idx.isUp ? 'bg-green-950/60 text-green-400' : 'bg-red-950/60 text-red-400'}`}>
               {idx.pct}
@@ -135,7 +185,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
           ))}
         </div>
         <span className="text-[11px] text-gray-500 font-mono hidden xl:inline">
-          Spot NIFTY: <strong className="text-amber-400">25,127.85</strong> • Updated 13 Nov 2026
+          Spot NIFTY: <strong className="text-amber-400">25,127.85</strong> • Live TBT Feeds Active
         </span>
       </div>
 
@@ -146,7 +196,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
           <div className="lg:col-span-7 bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold flex items-center gap-2 text-white">
-                <FiTrendingUp className="text-purple-400" /> Trending Stocks & ETFs
+                <FiTrendingUp className="text-purple-400" /> Trending Stocks & ETFs (Live TBT)
               </h3>
               <span className="text-[10px] text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-800">NSE / BSE Live</span>
             </div>
@@ -162,7 +212,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
                   <div className="mt-2 flex items-end justify-between">
                     <div>
                       <p className="text-sm font-mono font-bold text-gray-100">₹{st.price.toFixed(2)}</p>
-                      <p className={`text-[10px] font-mono ${st.isUp ? 'text-green-500' : 'text-red-500'}`}>{st.change}</p>
+                      <p className={`text-[10px] font-mono ${st.isUp ? 'text-green-500' : 'text-red-500'}`}>{st.isUp ? '+' : ''}{st.change}</p>
                     </div>
                     <div className="flex space-x-1">
                       <button onClick={() => onQuickTrade(st.symbol, st.price, 'BUY', 'holding')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">B</button>
@@ -237,8 +287,8 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
                       <tr key={idx} className="hover:bg-gray-800/40">
                         <td className="p-2.5 font-sans font-bold text-white">{opt.symbol}</td>
                         <td className="p-2.5"><span className="bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded text-[10px] font-sans">{opt.tag}</span></td>
-                        <td className="p-2.5 font-bold text-amber-400">₹{opt.ltp.toFixed(2)}</td>
-                        <td className="p-2.5 text-red-400">{opt.change}</td>
+                        <td className={`p-2.5 font-bold ${opt.isUp ? 'text-green-400' : 'text-amber-400'}`}>₹{opt.ltp.toFixed(2)}</td>
+                        <td className="p-2.5 text-gray-300">{opt.change}</td>
                         <td className="p-2.5 text-green-400">{opt.oi}</td>
                         <td className="p-2.5 text-center space-x-1">
                           <button onClick={() => onQuickTrade(opt.symbol, opt.ltp, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-sans font-bold cursor-pointer">Buy</button>
@@ -276,7 +326,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
                     {momentumGainers.map((mg, idx) => (
                       <tr key={idx} className="hover:bg-gray-800/40">
                         <td className="p-2.5 font-sans font-bold text-white">{mg.symbol}</td>
-                        <td className="p-2.5 font-bold text-white">₹{mg.ltp.toFixed(2)}</td>
+                        <td className={`p-2.5 font-bold ${mg.isUp ? 'text-green-400' : 'text-amber-400'}`}>₹{mg.ltp.toFixed(2)}</td>
                         <td className="p-2.5 text-green-400 font-bold">{mg.pct}</td>
                         <td className="p-2.5 text-gray-300">{mg.vol}</td>
                         <td className="p-2.5 text-purple-400">{mg.iv}</td>
@@ -423,7 +473,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
                   {mtfStocks.map((m, idx) => (
                     <tr key={idx} className="hover:bg-gray-800/40">
                       <td className="p-2.5 font-sans font-bold text-white">{m.symbol}</td>
-                      <td className="p-2.5 text-gray-200">₹{m.ltp.toFixed(2)}</td>
+                      <td className={`p-2.5 font-bold ${m.isUp ? 'text-green-400' : 'text-gray-200'}`}>₹{m.ltp.toFixed(2)}</td>
                       <td className={`p-2.5 font-bold ${m.isUp ? 'text-green-400' : 'text-red-400'}`}>{m.pct}</td>
                       <td className="p-2.5 font-bold text-purple-400">₹{m.payOnly.toFixed(2)}</td>
                       <td className="p-2.5 text-center space-x-1">
@@ -461,7 +511,7 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
                     <tr key={idx} className="hover:bg-gray-800/40">
                       <td className="p-2.5 font-sans font-bold text-white">{cf.symbol}</td>
                       <td className="p-2.5"><span className="bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded text-[10px] font-sans">{cf.type}</span></td>
-                      <td className="p-2.5 text-amber-400 font-bold">₹{cf.ltp.toFixed(2)}</td>
+                      <td className={`p-2.5 font-bold ${cf.isUp ? 'text-green-400' : 'text-amber-400'}`}>₹{cf.ltp.toFixed(2)}</td>
                       <td className={`p-2.5 font-bold ${cf.isUp ? 'text-green-400' : 'text-red-400'}`}>{cf.pct}</td>
                       <td className="p-2.5 text-center space-x-1">
                         <button onClick={() => onQuickTrade(cf.symbol, cf.ltp, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer">Buy</button>
