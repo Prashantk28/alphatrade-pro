@@ -137,7 +137,6 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // **Realized P&L state (ट्रेलिंग बुक नफा)**
   const [realizedPnL, setRealizedPnL] = useState(() => {
     const saved = localStorage.getItem('paper_trading_realized_pnl');
     return saved ? parseFloat(saved) : 0.00;
@@ -630,7 +629,6 @@ export default function App() {
             <FiDollarSign size={13}/> Funds: ₹{(totalFunds - usedMargin).toLocaleString()}
           </button>
           
-          {/* Realized Profit / Net Booked P&L Badge */}
           <span className={`px-3 py-1 rounded-lg text-xs font-bold border font-mono ${realizedPnL >= 0 ? 'bg-green-950/60 text-green-400 border-green-500/30' : 'bg-red-950/60 text-red-400 border-red-500/30'}`}>
             Booked P&L: {realizedPnL >= 0 ? '+' : ''}₹{realizedPnL.toFixed(2)}
           </span>
@@ -1100,7 +1098,6 @@ export default function App() {
         </main>
       </div>
 
-      {/* **UPSTOX TOKEN MODAL POPUP** */}
       {showTokenModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-xs space-y-4">
