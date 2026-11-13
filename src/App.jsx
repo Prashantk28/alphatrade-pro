@@ -39,15 +39,23 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
-  // **डायनॅमिक वॉचलिस्ट ग्रुप्स आणि नावे (Dynamic Watchlist Groups & Custom Names)**
-  const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(['1', '2', '3', '4', '5']);
-  const [watchlistGroupNames, setWatchlistGroupNames] = useState({
-    '1': 'Group 1',
-    '2': 'Group 2',
-    '3': 'Group 3',
-    '4': 'Group 4',
-    '5': 'Group 5'
+  // **localStorage वापरून वॉचलिस्ट ग्रुप्स आणि नावे कायमस्वरूपी सेव्ह करणे**
+  const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(() => {
+    const savedKeys = localStorage.getItem('watchlist_group_keys');
+    return savedKeys ? JSON.parse(savedKeys) : ['1', '2', '3', '4', '5'];
   });
+
+  const [watchlistGroupNames, setWatchlistGroupNames] = useState(() => {
+    const savedNames = localStorage.getItem('watchlist_group_names');
+    return savedNames ? JSON.parse(savedNames) : {
+      '1': 'Group 1',
+      '2': 'Group 2',
+      '3': 'Group 3',
+      '4': 'Group 4',
+      '5': 'Group 5'
+    };
+  });
+
   const [activeWatchlistGroup, setActiveWatchlistGroup] = useState('1');
   const [editingGroupNameKey, setEditingGroupNameKey] = useState(null);
   const [tempGroupNameInput, setTempGroupNameInput] = useState('');
@@ -261,17 +269,28 @@ export default function App() {
 
   const handleAddNewWatchlistGroup = () => {
     const newKey = `group_${Date.now()}`;
-    const newName = `My Group ${watchlistGroupKeys.length + 1}`;
-    setWatchlistGroupKeys([...watchlistGroupKeys, newKey]);
-    setWatchlistGroupNames({ ...watchlistGroupNames, [newKey]: newName });
-    setWatchlistGroups({ ...watchlistGroups, [newKey]: [] });
+    const newName = `Group ${watchlistGroupKeys.length + 1}`;
+    
+    const updatedKeys = [...watchlistGroupKeys, newKey];
+    const updatedNames = { ...watchlistGroupNames, [newKey]: newName };
+    const updatedGroups = { ...watchlistGroups, [newKey]: [] };
+
+    setWatchlistGroupKeys(updatedKeys);
+    setWatchlistGroupNames(updatedNames);
+    setWatchlistGroups(updatedGroups);
     setActiveWatchlistGroup(newKey);
+
+    localStorage.setItem('watchlist_group_keys', JSON.stringify(updatedKeys));
+    localStorage.setItem('watchlist_group_names', JSON.stringify(updatedNames));
+
     alert(`New Watchlist Group created successfully!`);
   };
 
   const handleSaveGroupName = (key) => {
     if (tempGroupNameInput.trim() !== '') {
-      setWatchlistGroupNames({ ...watchlistGroupNames, [key]: tempGroupNameInput.trim() });
+      const updatedNames = { ...watchlistGroupNames, [key]: tempGroupNameInput.trim() };
+      setWatchlistGroupNames(updatedNames);
+      localStorage.setItem('watchlist_group_names', JSON.stringify(updatedNames));
     }
     setEditingGroupNameKey(null);
     setTempGroupNameInput('');
