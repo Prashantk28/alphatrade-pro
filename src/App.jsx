@@ -39,7 +39,7 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
-  // **localStorage वापरून वॉचलिस्ट, पोझिशन्स, होल्डिंग्स आणि ऑर्डर्स कायमस्वरूपी सेव्ह करणे**
+  // **localStorage वापरून वॉचलिस्ट, पोझिशन्स, होल्डिंग्स आणि सब-टॅब कायमस्वरूपी सेव्ह करणे**
   const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(() => {
     const savedKeys = localStorage.getItem('watchlist_group_keys');
     return savedKeys ? JSON.parse(savedKeys) : ['1', '2', '3', '4', '5'];
@@ -114,9 +114,11 @@ export default function App() {
   const [shareCardData, setShareCardData] = useState(null);
   const [exitModalData, setExitModalData] = useState(null);
 
-  const [portfolioSubTab, setPortfolioSubTab] = useState('holdings');
+  // **रिफ्रेश केल्यावर शेवटचा उघडा असलेला पोर्टफोलिओ सब-टॅब (Holdings/Positions) लक्षात ठेवणे**
+  const [portfolioSubTab, setPortfolioSubTab] = useState(() => {
+    return localStorage.getItem('paper_trading_subtab') || 'positions';
+  });
 
-  // **Positions, Holdings, GTT & Order History localStorage persistence**
   const [positions, setPositions] = useState(() => {
     const saved = localStorage.getItem('paper_trading_positions');
     return saved ? JSON.parse(saved) : [];
@@ -412,6 +414,7 @@ export default function App() {
       setPositions(updatedPos);
       localStorage.setItem('paper_trading_positions', JSON.stringify(updatedPos));
       setPortfolioSubTab('positions');
+      localStorage.setItem('paper_trading_subtab', 'positions');
       setActiveTab('portfolio');
       alert(`Successfully placed ${type} option order for ${instrumentName} at ₹${price}! Added to Positions.`);
     } else {
@@ -419,6 +422,7 @@ export default function App() {
       setHoldings(updatedHold);
       localStorage.setItem('paper_trading_holdings', JSON.stringify(updatedHold));
       setPortfolioSubTab('holdings');
+      localStorage.setItem('paper_trading_subtab', 'holdings');
       setActiveTab('portfolio');
       alert(`Successfully bought stock ${instrumentName} at ₹${price}! Added to Holdings.`);
     }
@@ -616,7 +620,7 @@ export default function App() {
           <button onClick={() => setShowFundsModal(true)} className="bg-gray-800 hover:bg-gray-700 border border-green-500/30 text-green-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
             <FiDollarSign size={13}/> Funds: ₹{(totalFunds - usedMargin).toLocaleString()}
           </button>
-          <button onClick={() => { setActiveTab('portfolio'); setPortfolioSubTab('analytics'); }} className="bg-gray-800 hover:bg-gray-700 border border-purple-500/30 text-purple-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
+          <button onClick={() => { setActiveTab('portfolio'); setPortfolioSubTab('analytics'); localStorage.setItem('paper_trading_subtab', 'analytics'); }} className="bg-gray-800 hover:bg-gray-700 border border-purple-500/30 text-purple-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
             <FiPieChart size={13}/> Analytics (Win: {winRatePercentage}%)
           </button>
         </div>
@@ -655,7 +659,7 @@ export default function App() {
               <div className="py-1 text-gray-300">
                 <button onClick={() => { setShowProfileMenu(false); setShowProfileModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><span>👤 My Account | ID 122758</span></button>
                 <button onClick={() => { setShowProfileMenu(false); setShowFundsModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-green-400"><FiDollarSign size={13}/><span>Funds & Margin</span></button>
-                <button onClick={() => { setShowProfileMenu(false); setActiveTab('portfolio'); setPortfolioSubTab('analytics'); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiPieChart size={13}/><span>Trade Analytics Report</span></button>
+                <button onClick={() => { setShowProfileMenu(false); setActiveTab('portfolio'); setPortfolioSubTab('analytics'); localStorage.setItem('paper_trading_subtab', 'analytics'); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer text-purple-400"><FiPieChart size={13}/><span>Trade Analytics Report</span></button>
                 <button onClick={() => { setShowProfileMenu(false); setShowFeedbackModal(true); }} className="w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center space-x-2 font-medium cursor-pointer"><FiMessageSquare size={13}/><span>Send Feedback</span></button>
               </div>
               <div className="border-t border-gray-800 pt-1">
@@ -904,17 +908,17 @@ export default function App() {
             <div className="flex-1 bg-[#12141c] border border-gray-800 rounded-xl p-4 flex flex-col text-xs text-white">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-sm font-bold">Portfolio, Positions, GTT & Trade Analytics</h2>
-                <span className={`font-bold px-2.5 py-1 rounded ${totalNetPnL >= 0 ? 'bg-green-950/60 text-green-400 border border-green-500/30' : 'bg-red-950/60 text-red-400 border border-red-500/30'}`}>
+                <span className={`font-bold px-2.5 py-1 rounded ${totalNetPnL >= 0 ? 'bg-green-950/60 text-green-400 border border-green-500/30' : 'bg-red-950/60 text-red-400 border border-green-500/30'}`}>
                   Net Live P&L: {totalNetPnL >= 0 ? '+' : ''}₹{totalNetPnL.toFixed(2)}
                 </span>
               </div>
 
               <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-4 overflow-x-auto whitespace-nowrap">
-                <button onClick={() => setPortfolioSubTab('holdings')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'holdings' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
-                <button onClick={() => setPortfolioSubTab('positions')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'positions' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Positions ({positions.length})</button>
-                <button onClick={() => setPortfolioSubTab('gtt')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'gtt' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
-                <button onClick={() => setPortfolioSubTab('history')} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'history' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
-                <button onClick={() => setPortfolioSubTab('analytics')} className={`font-bold cursor-pointer pb-1 flex items-center gap-1 ${portfolioSubTab === 'analytics' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}><FiPieChart size={12}/> Trade Analytics Report</button>
+                <button onClick={() => { setPortfolioSubTab('holdings'); localStorage.setItem('paper_trading_subtab', 'holdings'); }} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'holdings' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Holdings ({holdings.length})</button>
+                <button onClick={() => { setPortfolioSubTab('positions'); localStorage.setItem('paper_trading_subtab', 'positions'); }} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'positions' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Positions ({positions.length})</button>
+                <button onClick={() => { setPortfolioSubTab('gtt'); localStorage.setItem('paper_trading_subtab', 'gtt'); }} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'gtt' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>GTT Orders ({gttOrders.length})</button>
+                <button onClick={() => { setPortfolioSubTab('history'); localStorage.setItem('paper_trading_subtab', 'history'); }} className={`font-bold cursor-pointer pb-1 ${portfolioSubTab === 'history' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}>Order History ({orderHistory.length})</button>
+                <button onClick={() => { setPortfolioSubTab('analytics'); localStorage.setItem('paper_trading_subtab', 'analytics'); }} className={`font-bold cursor-pointer pb-1 flex items-center gap-1 ${portfolioSubTab === 'analytics' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-gray-400'}`}><FiPieChart size={12}/> Trade Analytics Report</button>
               </div>
 
               {portfolioSubTab === 'holdings' && (
@@ -1183,7 +1187,7 @@ export default function App() {
           <div className="bg-[#1b1f2e] border border-purple-500/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
             <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro</span>
             <div className="bg-[#0b0e14] border border-gray-800 p-4 rounded-xl text-left space-y-2">
-              <p className="font-bold text-white">{shareCardData.instrument}</p>
+              <p className="font-bold text-white">{shareCard>instrument}</p>
               <p className={`font-bold text-xl font-mono ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{shareCardData.pnl}</p>
             </div>
             <button onClick={() => setShareCardData(null)} className="w-full py-2 rounded-lg bg-purple-600 text-white font-bold text-xs cursor-pointer">Close</button>
