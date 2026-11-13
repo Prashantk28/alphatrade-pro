@@ -12,7 +12,7 @@ app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 const UPSTOX_API_KEY = process.env.UPSTOX_API_KEY || 'fe609450-ca64-47d2-bba4-1d8e1f79eab9';
-const UPSTOX_API_SECRET = process.env.UPSTOX_API_SECRET || 'jitsjbzk0u';
+const UPSTOX_API_SECRET = process.env.UPSTOX_API_SECRET || 'ioccmrh4nw';
 
 // Nodemailer Transporter Setup (जीमेलवरून ईमेल पाठवण्यासाठी)
 const transporter = nodemailer.createTransport({
