@@ -39,7 +39,6 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
-  // **localStorage वापरून वॉचलिस्ट, पोझिशन्स, होल्डिंग्स आणि सब-टॅब कायमस्वरूपी सेव्ह करणे**
   const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(() => {
     const savedKeys = localStorage.getItem('watchlist_group_keys');
     return savedKeys ? JSON.parse(savedKeys) : ['1', '2', '3', '4', '5'];
@@ -114,7 +113,6 @@ export default function App() {
   const [shareCardData, setShareCardData] = useState(null);
   const [exitModalData, setExitModalData] = useState(null);
 
-  // **रिफ्रेश केल्यावर शेवटचा उघडा असलेला पोर्टफोलिओ सब-टॅब (Holdings/Positions) लक्षात ठेवणे**
   const [portfolioSubTab, setPortfolioSubTab] = useState(() => {
     return localStorage.getItem('paper_trading_subtab') || 'positions';
   });
@@ -137,6 +135,12 @@ export default function App() {
   const [gttOrders, setGttOrders] = useState(() => {
     const saved = localStorage.getItem('paper_trading_gtt');
     return saved ? JSON.parse(saved) : [];
+  });
+
+  // **Realized P&L state (ट्रेलिंग बुक नफा)**
+  const [realizedPnL, setRealizedPnL] = useState(() => {
+    const saved = localStorage.getItem('paper_trading_realized_pnl');
+    return saved ? parseFloat(saved) : 0.00;
   });
 
   const [totalFunds, setTotalFunds] = useState(() => {
@@ -433,12 +437,17 @@ export default function App() {
     const { type, item, orderType, limitPrice } = exitModalData;
     const finalPrice = orderType === 'Limit' ? parseFloat(limitPrice) || item.ltp : item.ltp;
 
+    const tradeProfit = item.pnlVal || 0;
+    const newRealized = realizedPnL + tradeProfit;
+    setRealizedPnL(newRealized);
+    localStorage.setItem('paper_trading_realized_pnl', newRealized.toString());
+
     if (type === 'holding') {
       const updatedHoldings = holdings.filter(h => h.id !== item.id);
       setHoldings(updatedHoldings);
       localStorage.setItem('paper_trading_holdings', JSON.stringify(updatedHoldings));
 
-      const newFunds = totalFunds + (finalPrice * 10) + (item.pnlVal || 0);
+      const newFunds = totalFunds + (finalPrice * 10) + tradeProfit;
       setTotalFunds(newFunds);
       localStorage.setItem('paper_trading_funds', newFunds.toString());
 
@@ -446,13 +455,13 @@ export default function App() {
       setUsedMargin(newMargin);
       localStorage.setItem('paper_trading_margin', newMargin.toString());
 
-      alert(`Successfully sold holding ${item.instrument} at ₹${finalPrice}!`);
+      alert(`Successfully sold holding ${item.instrument} at ₹${finalPrice}! Booked P&L: ₹${tradeProfit.toFixed(2)}`);
     } else {
       const updatedPositions = positions.filter(p => p.id !== item.id);
       setPositions(updatedPositions);
       localStorage.setItem('paper_trading_positions', JSON.stringify(updatedPositions));
 
-      const newFunds = totalFunds + (finalPrice * 10) + item.pnlVal;
+      const newFunds = totalFunds + (finalPrice * 10) + tradeProfit;
       setTotalFunds(newFunds);
       localStorage.setItem('paper_trading_funds', newFunds.toString());
 
@@ -460,7 +469,7 @@ export default function App() {
       setUsedMargin(newMargin);
       localStorage.setItem('paper_trading_margin', newMargin.toString());
 
-      alert(`Successfully squared off position ${item.instrument} at ₹${finalPrice}!`);
+      alert(`Successfully squared off position ${item.instrument} at ₹${finalPrice}! Booked P&L: ₹${tradeProfit.toFixed(2)}`);
     }
     setExitModalData(null);
   };
@@ -620,6 +629,12 @@ export default function App() {
           <button onClick={() => setShowFundsModal(true)} className="bg-gray-800 hover:bg-gray-700 border border-green-500/30 text-green-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
             <FiDollarSign size={13}/> Funds: ₹{(totalFunds - usedMargin).toLocaleString()}
           </button>
+          
+          {/* Realized Profit / Net Booked P&L Badge */}
+          <span className={`px-3 py-1 rounded-lg text-xs font-bold border font-mono ${realizedPnL >= 0 ? 'bg-green-950/60 text-green-400 border-green-500/30' : 'bg-red-950/60 text-red-400 border-red-500/30'}`}>
+            Booked P&L: {realizedPnL >= 0 ? '+' : ''}₹{realizedPnL.toFixed(2)}
+          </span>
+
           <button onClick={() => { setActiveTab('portfolio'); setPortfolioSubTab('analytics'); localStorage.setItem('paper_trading_subtab', 'analytics'); }} className="bg-gray-800 hover:bg-gray-700 border border-purple-500/30 text-purple-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all">
             <FiPieChart size={13}/> Analytics (Win: {winRatePercentage}%)
           </button>
@@ -673,7 +688,6 @@ export default function App() {
       <div className="flex-1 flex overflow-hidden relative">
         <aside className="w-80 bg-[#12141c] border-r border-gray-800 flex flex-col hidden md:flex">
           
-          {/* Watchlist Group Tabs & Add Button */}
           <div className="bg-[#0b0e14] px-2 py-2 border-b border-gray-800 flex items-center justify-between gap-1 overflow-x-auto">
             <div className="flex items-center space-x-1 overflow-x-auto py-0.5">
               {watchlistGroupKeys.map((grpKey, index) => (
@@ -697,7 +711,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Active Group Header with Name Editing Support */}
           <div className="px-3 py-2 bg-[#12141c] border-b border-gray-800 flex items-center justify-between">
             {editingGroupNameKey === activeWatchlistGroup ? (
               <div className="flex items-center space-x-1 w-full">
@@ -908,9 +921,14 @@ export default function App() {
             <div className="flex-1 bg-[#12141c] border border-gray-800 rounded-xl p-4 flex flex-col text-xs text-white">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-sm font-bold">Portfolio, Positions, GTT & Trade Analytics</h2>
-                <span className={`font-bold px-2.5 py-1 rounded ${totalNetPnL >= 0 ? 'bg-green-950/60 text-green-400 border border-green-500/30' : 'bg-red-950/60 text-red-400 border border-green-500/30'}`}>
-                  Net Live P&L: {totalNetPnL >= 0 ? '+' : ''}₹{totalNetPnL.toFixed(2)}
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className={`font-bold px-2.5 py-1 rounded font-mono ${realizedPnL >= 0 ? 'bg-green-950/60 text-green-400 border border-green-500/30' : 'bg-red-950/60 text-red-400 border border-red-500/30'}`}>
+                    Booked P&L: {realizedPnL >= 0 ? '+' : ''}₹{realizedPnL.toFixed(2)}
+                  </span>
+                  <span className={`font-bold px-2.5 py-1 rounded font-mono ${totalNetPnL >= 0 ? 'bg-green-950/60 text-green-400 border border-green-500/30' : 'bg-red-950/60 text-red-400 border border-red-500/30'}`}>
+                    Net Live P&L: {totalNetPnL >= 0 ? '+' : ''}₹{totalNetPnL.toFixed(2)}
+                  </span>
+                </div>
               </div>
 
               <div className="flex space-x-4 border-b border-gray-800 pb-2 mb-4 overflow-x-auto whitespace-nowrap">
@@ -1187,7 +1205,7 @@ export default function App() {
           <div className="bg-[#1b1f2e] border border-purple-500/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl font-sans text-center space-y-4">
             <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-md text-xs">AlphaTrade Pro</span>
             <div className="bg-[#0b0e14] border border-gray-800 p-4 rounded-xl text-left space-y-2">
-              <p className="font-bold text-white">{shareCard>instrument}</p>
+              <p className="font-bold text-white">{shareCardData.instrument}</p>
               <p className={`font-bold text-xl font-mono ${shareCardData.pnlVal >= 0 ? 'text-green-400' : 'text-red-400'}`}>{shareCardData.pnl}</p>
             </div>
             <button onClick={() => setShareCardData(null)} className="w-full py-2 rounded-lg bg-purple-600 text-white font-bold text-xs cursor-pointer">Close</button>
