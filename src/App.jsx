@@ -45,9 +45,14 @@ export default function App() {
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('SENSEX');
   const [selectedExpiry, setSelectedExpiry] = useState('12 Nov 2026');
 
-  const [isUpstoxConnected, setIsUpstoxConnected] = useState(false);
+  // **LocalStorage वापरून Upstox Connection सेव्ह ठेवणे**
+  const [isUpstoxConnected, setIsUpstoxConnected] = useState(() => {
+    return localStorage.getItem('upstox_connected') === 'true';
+  });
   const [showTokenModal, setShowTokenModal] = useState(false);
-  const [upstoxToken, setUpstoxToken] = useState('');
+  const [upstoxToken, setUpstoxToken] = useState(() => {
+    return localStorage.getItem('upstox_token') || '';
+  });
 
   const [selectedOrderStock, setSelectedOrderStock] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -235,6 +240,8 @@ export default function App() {
     if (upstoxToken.trim() !== '') {
       setIsUpstoxConnected(true);
       setShowTokenModal(false);
+      localStorage.setItem('upstox_connected', 'true');
+      localStorage.setItem('upstox_token', upstoxToken.trim());
       alert("Upstox Access Token Validated & Connected Successfully!");
     } else {
       alert("Please enter a valid Upstox Access Token.");
@@ -516,10 +523,7 @@ export default function App() {
           ) : (
             <button 
               type="button"
-              onClick={() => {
-                console.log("Token button clicked!");
-                setShowTokenModal(true);
-              }} 
+              onClick={() => setShowTokenModal(true)} 
               className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg transition-all cursor-pointer relative z-50"
             >
               🔑 Set Upstox Token
