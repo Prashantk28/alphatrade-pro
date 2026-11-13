@@ -64,7 +64,6 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
     { symbol: 'IDEA', ltp: 12.56, pct: '-3.16%', payOnly: 4.14, isUp: false },
   ]);
 
-  // **NEW: Commodities Movers & Shakers & Expiring Soon Data**
   const [commodityMovers, setCommodityMovers] = useState([
     { symbol: 'MCX GOLDM 137000 PE', expiry: '27 NOV 26', ltp: 2698.00, changePct: '-7.38%', value: '35.35 Cr', isUp: false },
     { symbol: 'MCX GOLD 135000 PE', expiry: '27 NOV 26', ltp: 1897.50, changePct: '-8.02%', value: '30.64 Cr', isUp: false },
@@ -100,61 +99,54 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
   ];
 
   const quickTools = [
-    { label: 'Option Chain', action: () => onOpenOptionChain('NIFTY 50') },
-    { label: 'OI Analysis', action: () => setActiveSubNav('fno') },
-    { label: 'Advisory Calls', action: () => setActiveSubNav('advisory') },
-    { label: 'MTF Margin', action: () => setActiveSubNav('mtf') },
-    { label: 'Commodities & Fut', action: () => setActiveSubNav('commodities') },
-    { label: 'Upcoming IPOs', action: () => setActiveSubNav('ipo') },
-    { label: 'All Overview', action: () => setActiveSubNav('all') },
+    { id: 'optionChain', label: 'Option Chain', action: () => onOpenOptionChain('NIFTY 50') },
+    { id: 'fno', label: 'OI Analysis', action: () => setActiveSubNav('fno') },
+    { id: 'advisory', label: 'Advisory Calls', action: () => setActiveSubNav('advisory') },
+    { id: 'mtf', label: 'MTF Margin', action: () => setActiveSubNav('mtf') },
+    { id: 'commodities', label: 'Commodities & Fut', action: () => setActiveSubNav('commodities') },
+    { id: 'ipo', label: 'Upcoming IPOs', action: () => setActiveSubNav('ipo') },
+    { id: 'all', label: 'All Overview', action: () => setActiveSubNav('all') },
   ];
 
-  // **LIVE PRICE FLUCTUATION EFFECT (प्रत्येक सेकंदाला सर्व प्राईस फ्लक्च्युएट होणार)**
+  // **LIVE PRICE FLUCTUATION EFFECT**
   useEffect(() => {
     const interval = setInterval(() => {
-      // 1. Index Ticker Update
       setIndexSnapshots(prev => prev.map(idx => {
         const delta = (Math.random() - 0.48) * 15;
         const newPrice = parseFloat((idx.price + delta).toFixed(2));
         return { ...idx, price: newPrice, isUp: delta >= 0 };
       }));
 
-      // 2. Trending Stocks Update
       setTrendingStocks(prev => prev.map(st => {
         const delta = (Math.random() - 0.48) * (st.price * 0.003);
         const newPrice = parseFloat((st.price + delta).toFixed(2));
         return { ...st, price: newPrice, isUp: delta >= 0 };
       }));
 
-      // 3. Trending Options Update
       setTrendingOptions(prev => prev.map(opt => {
         const delta = (Math.random() - 0.48) * 3;
         const newLtp = Math.max(2.00, parseFloat((opt.ltp + delta).toFixed(2)));
         return { ...opt, ltp: newLtp, isUp: delta >= 0 };
       }));
 
-      // 4. Momentum Gainers Update
       setMomentumGainers(prev => prev.map(mg => {
         const delta = (Math.random() - 0.48) * 2;
         const newLtp = Math.max(2.00, parseFloat((mg.ltp + delta).toFixed(2)));
         return { ...mg, ltp: newLtp, isUp: delta >= 0 };
       }));
 
-      // 5. MTF Stocks Update
       setMtfStocks(prev => prev.map(m => {
         const delta = (Math.random() - 0.48) * (m.ltp * 0.002);
         const newLtp = parseFloat((m.ltp + delta).toFixed(2));
         return { ...m, ltp: newLtp, isUp: delta >= 0 };
       }));
 
-      // 6. Commodities Movers Update (Gold Options/Futures)
       setCommodityMovers(prev => prev.map(cm => {
         const delta = (Math.random() - 0.48) * 15;
         const newLtp = Math.max(50.00, parseFloat((cm.ltp + delta).toFixed(2)));
         return { ...cm, ltp: newLtp, isUp: delta >= 0 };
       }));
 
-      // 7. Expiring Commodities Update
       setExpiringCommodities(prev => prev.map(ec => {
         const delta = (Math.random() - 0.48) * 5;
         const newLtp = Math.max(20.00, parseFloat((ec.ltp + delta).toFixed(2)));
@@ -195,7 +187,11 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
             <button
               key={i}
               onClick={tool.action}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0b0e14] hover:bg-purple-600/20 text-gray-300 hover:text-purple-300 border border-gray-800 hover:border-purple-500/40 transition-all cursor-pointer whitespace-nowrap"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeSubNav === tool.id 
+                  ? 'bg-purple-600 text-white shadow-md' 
+                  : 'bg-[#0b0e14] hover:bg-purple-600/20 text-gray-300 hover:text-purple-300 border border-gray-800'
+              }`}
             >
               {tool.label}
             </button>
@@ -456,10 +452,48 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
         </div>
       )}
 
-      {/* Section 4: MTF Stocks & Commodities / Futures (MCX Movers & Shakers Added) */}
-      {(activeSubNav === 'all' || activeSubNav === 'mtf' || activeSubNav === 'commodities') && (
+      {/* Section 4: MTF Margin Stocks (Shows ONLY when MTF tab is clicked) */}
+      {(activeSubNav === 'all' || activeSubNav === 'mtf') && (
+        <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold flex items-center gap-2 text-white">
+              <FiLayers className="text-amber-400" /> Trending MTF (Margin Trading) Stocks
+            </h3>
+            <span className="text-[10px] text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded">Up to 4x Leverage</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
+              <thead>
+                <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-[10px] uppercase">
+                  <th className="p-2.5">Symbol</th>
+                  <th className="p-2.5">LTP</th>
+                  <th className="p-2.5">Change</th>
+                  <th className="p-2.5 text-purple-300">Pay Only (MTF)</th>
+                  <th className="p-2.5 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/60 font-mono">
+                {mtfStocks.map((m, idx) => (
+                  <tr key={idx} className="hover:bg-gray-800/40">
+                    <td className="p-2.5 font-sans font-bold text-white">{m.symbol}</td>
+                    <td className={`p-2.5 font-bold ${m.isUp ? 'text-green-400' : 'text-gray-200'}`}>₹{m.ltp.toFixed(2)}</td>
+                    <td className={`p-2.5 font-bold ${m.isUp ? 'text-green-400' : 'text-red-400'}`}>{m.pct}</td>
+                    <td className="p-2.5 font-bold text-purple-400">₹{m.payOnly.toFixed(2)}</td>
+                    <td className="p-2.5 text-center space-x-1">
+                      <button onClick={() => onQuickTrade(m.symbol, m.ltp, 'BUY', 'holding')} className="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-sans font-bold cursor-pointer">Buy</button>
+                      <button onClick={() => onQuickTrade(m.symbol, m.ltp, 'SELL', 'holding')} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-sans font-bold cursor-pointer">Sell</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Section 5: Commodities & Futures (Shows ONLY when Commodities tab is clicked) */}
+      {(activeSubNav === 'all' || activeSubNav === 'commodities') && (
         <div className="space-y-5">
-          {/* Commodities Movers & Shakers (MCX Gold Options / Futures) */}
           <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold flex items-center gap-2 text-white">
@@ -488,8 +522,8 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
                       <td className={`p-2.5 font-bold ${cm.isUp ? 'text-green-400' : 'text-red-400'}`}>{cm.changePct}</td>
                       <td className="p-2.5 text-purple-400 font-bold">{cm.value}</td>
                       <td className="p-2.5 text-center space-x-1">
-                        <button onClick={() => onQuickTrade(cm.symbol, cm.ltp, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer">Buy</button>
-                        <button onClick={() => onQuickTrade(cm.symbol, cm.ltp, 'SELL', 'position')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer">Sell</button>
+                        <button onClick={() => onQuickTrade(cm.symbol, cm.ltp, 'BUY', 'position')} className="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded text-[10px] font-sans font-bold cursor-pointer">Buy</button>
+                        <button onClick={() => onQuickTrade(cm.symbol, cm.ltp, 'SELL', 'position')} className="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded text-[10px] font-sans font-bold cursor-pointer">Sell</button>
                       </td>
                     </tr>
                   ))}
@@ -498,76 +532,35 @@ export default function MarketOverview({ onQuickTrade, onOpenOptionChain }) {
             </div>
           </div>
 
-          {/* Commodities Expiring Soon & MTF Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Expiring Soon */}
-            <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold flex items-center gap-2 text-white">
-                  <FiClock className="text-blue-400" /> Commodities Expiring Soon
-                </h3>
-                <span className="text-[10px] text-gray-400">MCX Expiry Watch</span>
-              </div>
-              <div className="space-y-2.5">
-                {expiringCommodities.map((ec, idx) => (
-                  <div key={idx} className="bg-[#0b0e14] border border-gray-800 rounded-xl p-3 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-white">{ec.name}</span>
-                        <span className="text-[10px] bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">{ec.expiry}</span>
-                      </div>
-                      <p className="text-[11px] text-amber-400 mt-1">{ec.info}</p>
-                    </div>
-                    <div className="text-right font-mono">
-                      <p className={`text-xs font-bold ${ec.isUp ? 'text-green-400' : 'text-red-400'}`}>₹{ec.ltp.toFixed(2)} ({ec.change})</p>
-                      <button onClick={() => onQuickTrade(ec.name, ec.ltp, 'BUY', 'position')} className="mt-1 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">Trade</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold flex items-center gap-2 text-white">
+                <FiClock className="text-blue-400" /> Commodities Expiring Soon
+              </h3>
+              <span className="text-[10px] text-gray-400">MCX Expiry Watch</span>
             </div>
-
-            {/* Trending MTF */}
-            <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold flex items-center gap-2 text-white">
-                  <FiLayers className="text-amber-400" /> Trending MTF (Margin Trading)
-                </h3>
-                <span className="text-[10px] text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded">Up to 4x Leverage</span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse whitespace-nowrap">
-                  <thead>
-                    <tr className="bg-[#0b0e14] text-gray-400 border-b border-gray-800 text-[10px] uppercase">
-                      <th className="p-2.5">Symbol</th>
-                      <th className="p-2.5">LTP</th>
-                      <th className="p-2.5">Change</th>
-                      <th className="p-2.5 text-purple-300">Pay Only (MTF)</th>
-                      <th className="p-2.5 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800/60 font-mono">
-                    {mtfStocks.map((m, idx) => (
-                      <tr key={idx} className="hover:bg-gray-800/40">
-                        <td className="p-2.5 font-sans font-bold text-white">{m.symbol}</td>
-                        <td className={`p-2.5 font-bold ${m.isUp ? 'text-green-400' : 'text-gray-200'}`}>₹{m.ltp.toFixed(2)}</td>
-                        <td className={`p-2.5 font-bold ${m.isUp ? 'text-green-400' : 'text-red-400'}`}>{m.pct}</td>
-                        <td className="p-2.5 font-bold text-purple-400">₹{m.payOnly.toFixed(2)}</td>
-                        <td className="p-2.5 text-center space-x-1">
-                          <button onClick={() => onQuickTrade(m.symbol, m.ltp, 'BUY', 'holding')} className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer">Buy</button>
-                          <button onClick={() => onQuickTrade(m.symbol, m.ltp, 'SELL', 'holding')} className="bg-red-600 hover:bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-sans font-bold cursor-pointer">Sell</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {expiringCommodities.map((ec, idx) => (
+                <div key={idx} className="bg-[#0b0e14] border border-gray-800 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-white">{ec.name}</span>
+                      <span className="text-[10px] bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">{ec.expiry}</span>
+                    </div>
+                    <p className="text-[11px] text-amber-400 mt-1">{ec.info}</p>
+                  </div>
+                  <div className="text-right font-mono">
+                    <p className={`text-xs font-bold ${ec.isUp ? 'text-green-400' : 'text-red-400'}`}>₹{ec.ltp.toFixed(2)} ({ec.change})</p>
+                    <button onClick={() => onQuickTrade(ec.name, ec.ltp, 'BUY', 'position')} className="mt-1 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white px-2.5 py-0.5 rounded text-[10px] font-bold cursor-pointer">Trade</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* Section 5: Upcoming IPOs Hub */}
+      {/* Section 6: Upcoming IPOs Hub */}
       {(activeSubNav === 'all' || activeSubNav === 'ipo') && (
         <div className="bg-[#12141c] border border-gray-800 rounded-2xl p-4 shadow-xl">
           <div className="flex items-center justify-between mb-3">
