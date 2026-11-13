@@ -4,6 +4,7 @@ import PlaceOrderPanel from './components/PlaceOrderPanel';
 import ProfileModal from './components/ProfileModal';
 import FeedbackModal from './components/FeedbackModal';
 import AdvancedChart from './components/AdvancedChart';
+import MarketOverview from './components/MarketOverview';
 
 const stockBasePrices = {
   'EXIDEIND': 381.45,
@@ -33,9 +34,8 @@ const stockBasePrices = {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
   const [authMode, setAuthMode] = useState('login'); 
-  const [activeTab, setActiveTab] = useState('optionChain');
+  const [activeTab, setActiveTab] = useState('marketPulse');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
@@ -45,7 +45,6 @@ export default function App() {
   const [selectedOptionSymbol, setSelectedOptionSymbol] = useState('SENSEX');
   const [selectedExpiry, setSelectedExpiry] = useState('12 Nov 2026');
 
-  // **LocalStorage वापरून Upstox Connection सेव्ह ठेवणे**
   const [isUpstoxConnected, setIsUpstoxConnected] = useState(() => {
     return localStorage.getItem('upstox_connected') === 'true';
   });
@@ -509,6 +508,7 @@ export default function App() {
         </div>
 
         <nav className="flex items-center space-x-1">
+          <button onClick={() => setActiveTab('marketPulse')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'marketPulse' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>🔥 Market Pulse</button>
           <button onClick={() => setActiveTab('chart')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'chart' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>📊 Chart</button>
           <button onClick={() => setActiveTab('optionChain')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'optionChain' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Option Chain</button>
           <button onClick={() => setActiveTab('portfolio')} className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeTab === 'portfolio' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>Portfolio & History</button>
@@ -627,6 +627,25 @@ export default function App() {
         </aside>
 
         <main className="flex-1 bg-[#0b0e14] p-4 flex flex-col overflow-y-auto">
+          {activeTab === 'marketPulse' && (
+            <MarketOverview 
+              onQuickTrade={(symbol, price, actionType, category) => {
+                setSelectedOrderStock({
+                  symbol,
+                  price,
+                  actionType,
+                  category,
+                  high: price * 1.03,
+                  low: price * 0.97
+                });
+              }}
+              onOpenOptionChain={(sym) => {
+                setSelectedOptionSymbol(sym);
+                setActiveTab('optionChain');
+              }}
+            />
+          )}
+
           {activeTab === 'chart' && (
             <div className="w-full h-full flex flex-col">
               <AdvancedChart 
