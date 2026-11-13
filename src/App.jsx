@@ -39,7 +39,7 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [selectedStock, setSelectedStock] = useState('EXIDEIND');
 
-  // **localStorage वापरून वॉचलिस्ट ग्रुप्स आणि नावे कायमस्वरूपी सेव्ह करणे**
+  // **localStorage वापरून वॉचलिस्ट ग्रुप्स, नावे आणि त्यातील स्टॉक्स कायमस्वरूपी सेव्ह करणे**
   const [watchlistGroupKeys, setWatchlistGroupKeys] = useState(() => {
     const savedKeys = localStorage.getItem('watchlist_group_keys');
     return savedKeys ? JSON.parse(savedKeys) : ['1', '2', '3', '4', '5'];
@@ -53,6 +53,40 @@ export default function App() {
       '3': 'Group 3',
       '4': 'Group 4',
       '5': 'Group 5'
+    };
+  });
+
+  const [watchlistGroups, setWatchlistGroups] = useState(() => {
+    const savedGroups = localStorage.getItem('watchlist_groups_data');
+    return savedGroups ? JSON.parse(savedGroups) : {
+      '1': [
+        { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.07, changePct: -0.55, isUp: false, high: 108.00, low: 104.00 },
+        { name: 'EXIDEIND', exchange: 'NSE EQ', price: 382.00, changeNum: -3.95, changePct: -1.02, isUp: false, high: 384.00, low: 378.50 },
+        { name: 'PVRINOX', exchange: 'NSE EQ', price: 1591.00, changeNum: 7.60, changePct: 0.48, isUp: true, high: 1610.00, low: 1580.00 },
+        { name: 'PNB', exchange: 'NSE EQ', price: 139.60, changeNum: 1.12, changePct: 0.81, isUp: true, high: 142.00, low: 138.00 },
+        { name: 'PCBL', exchange: 'NSE EQ', price: 286.30, changeNum: 5.75, changePct: 2.05, isUp: true, high: 292.00, low: 280.00 },
+        { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.10, changeNum: -0.01, changePct: -0.90, isUp: false, high: 1.15, low: 1.10 },
+        { name: 'ONGC', exchange: 'NSE EQ', price: 225.45, changeNum: -9.35, changePct: -3.98, isUp: false, high: 235.00, low: 224.00 },
+        { name: 'CIPLA', exchange: 'NSE EQ', price: 1404.00, changeNum: -15.90, changePct: -1.12, isUp: false, high: 1425.00, low: 1400.00 },
+        { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.03, changeNum: 0.80, changePct: 1.00, isUp: true, high: 83.00, low: 80.00 },
+        { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.40, changeNum: 27.70, changePct: 2.47, isUp: true, high: 1160.00, low: 1120.00 },
+        { name: 'TECHM', exchange: 'NSE EQ', price: 1772.40, changeNum: -16.10, changePct: -0.90, isUp: false, high: 1795.00, low: 1770.00 },
+        { name: 'SPENCERS', exchange: 'NSE EQ', price: 22.85, changeNum: 1.08, changePct: 4.96, isUp: true, high: 23.50, low: 21.50 },
+        { name: 'COALINDIA', exchange: 'NSE EQ', price: 402.90, changeNum: -3.40, changePct: -0.84, isUp: false, high: 410.00, low: 400.00 },
+        { name: 'HINDZINC', exchange: 'NSE EQ', price: 567.80, changeNum: -11.20, changePct: -1.93, isUp: false, high: 585.00, low: 568.00 }
+      ],
+      '2': [
+        { name: 'NIFTY 50', exchange: 'NSE EQ', price: 24893.03, changeNum: 1.26, changePct: 0.01, isUp: true, high: 25050.00, low: 24780.00 },
+        { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 61104.90, changeNum: 312.50, changePct: 0.51, isUp: true, high: 61300.00, low: 60800.00 },
+        { name: 'SENSEX', exchange: 'BSE X', price: 81840.23, changeNum: -39.17, changePct: -0.05, isUp: false, high: 82100.00, low: 81500.00 }
+      ],
+      '3': [
+        { name: 'TCS', exchange: 'NSE EQ', price: 3942.49, changeNum: 0.41, changePct: 0.00, isUp: true, high: 3970.00, low: 3920.00 },
+        { name: 'INFY', exchange: 'NSE EQ', price: 1624.84, changeNum: 0.03, changePct: 0.00, isUp: true, high: 1640.00, low: 1610.00 },
+        { name: 'HDFCBANK', exchange: 'NSE EQ', price: 1466.97, changeNum: 0.24, changePct: 0.00, isUp: true, high: 1485.00, low: 1455.00 }
+      ],
+      '4': [],
+      '5': []
     };
   });
 
@@ -94,37 +128,6 @@ export default function App() {
   const [newPassword, setNewPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [resetSent, setResetSent] = useState(false);
-
-  const [watchlistGroups, setWatchlistGroups] = useState({
-    '1': [
-      { name: 'DHANSAFAL', exchange: 'BSE X', price: 105.50, changeNum: -0.07, changePct: -0.55, isUp: false, high: 108.00, low: 104.00 },
-      { name: 'EXIDEIND', exchange: 'NSE EQ', price: 382.00, changeNum: -3.95, changePct: -1.02, isUp: false, high: 384.00, low: 378.50 },
-      { name: 'PVRINOX', exchange: 'NSE EQ', price: 1591.00, changeNum: 7.60, changePct: 0.48, isUp: true, high: 1610.00, low: 1580.00 },
-      { name: 'PNB', exchange: 'NSE EQ', price: 139.60, changeNum: 1.12, changePct: 0.81, isUp: true, high: 142.00, low: 138.00 },
-      { name: 'PCBL', exchange: 'NSE EQ', price: 286.30, changeNum: 5.75, changePct: 2.05, isUp: true, high: 292.00, low: 280.00 },
-      { name: 'GTLINFRA', exchange: 'NSE EQ', price: 1.10, changeNum: -0.01, changePct: -0.90, isUp: false, high: 1.15, low: 1.10 },
-      { name: 'ONGC', exchange: 'NSE EQ', price: 225.45, changeNum: -9.35, changePct: -3.98, isUp: false, high: 235.00, low: 224.00 },
-      { name: 'CIPLA', exchange: 'NSE EQ', price: 1404.00, changeNum: -15.90, changePct: -1.12, isUp: false, high: 1425.00, low: 1400.00 },
-      { name: 'IDFCFIRSTB', exchange: 'NSE EQ', price: 81.03, changeNum: 0.80, changePct: 1.00, isUp: true, high: 83.00, low: 80.00 },
-      { name: 'PNBHOUSING', exchange: 'NSE EQ', price: 1149.40, changeNum: 27.70, changePct: 2.47, isUp: true, high: 1160.00, low: 1120.00 },
-      { name: 'TECHM', exchange: 'NSE EQ', price: 1772.40, changeNum: -16.10, changePct: -0.90, isUp: false, high: 1795.00, low: 1770.00 },
-      { name: 'SPENCERS', exchange: 'NSE EQ', price: 22.85, changeNum: 1.08, changePct: 4.96, isUp: true, high: 23.50, low: 21.50 },
-      { name: 'COALINDIA', exchange: 'NSE EQ', price: 402.90, changeNum: -3.40, changePct: -0.84, isUp: false, high: 410.00, low: 400.00 },
-      { name: 'HINDZINC', exchange: 'NSE EQ', price: 567.80, changeNum: -11.20, changePct: -1.93, isUp: false, high: 585.00, low: 568.00 }
-    ],
-    '2': [
-      { name: 'NIFTY 50', exchange: 'NSE EQ', price: 24893.03, changeNum: 1.26, changePct: 0.01, isUp: true, high: 25050.00, low: 24780.00 },
-      { name: 'BANKNIFTY', exchange: 'NSE EQ', price: 61104.90, changeNum: 312.50, changePct: 0.51, isUp: true, high: 61300.00, low: 60800.00 },
-      { name: 'SENSEX', exchange: 'BSE X', price: 81840.23, changeNum: -39.17, changePct: -0.05, isUp: false, high: 82100.00, low: 81500.00 }
-    ],
-    '3': [
-      { name: 'TCS', exchange: 'NSE EQ', price: 3942.49, changeNum: 0.41, changePct: 0.00, isUp: true, high: 3970.00, low: 3920.00 },
-      { name: 'INFY', exchange: 'NSE EQ', price: 1624.84, changeNum: 0.03, changePct: 0.00, isUp: true, high: 1640.00, low: 1610.00 },
-      { name: 'HDFCBANK', exchange: 'NSE EQ', price: 1466.97, changeNum: 0.24, changePct: 0.00, isUp: true, high: 1485.00, low: 1455.00 }
-    ],
-    '4': [],
-    '5': []
-  });
 
   const currentGroupStocks = watchlistGroups[activeWatchlistGroup] || [];
   const currentStockObj = currentGroupStocks.find(s => s.name === selectedStock) || currentGroupStocks[0] || { name: 'EXIDEIND', price: 381.45, high: 384, low: 378 };
@@ -189,7 +192,7 @@ export default function App() {
           updated[grpKey] = updated[grpKey].map(stock => {
             const delta = (Math.random() - 0.48) * (stock.price * 0.0012);
             const newPrice = parseFloat((stock.price + delta).toFixed(2));
-            const newChangeNum = parseFloat((stock.changeNum + delta).toFixed(2));
+            const newChangeNum = parseFloat(((stock.changeNum || 0) + delta).toFixed(2));
             const baseOrig = newPrice - newChangeNum;
             const newChangePct = baseOrig !== 0 ? parseFloat(((newChangeNum / baseOrig) * 100).toFixed(2)) : 0.00;
             return {
@@ -203,6 +206,7 @@ export default function App() {
             };
           });
         });
+        localStorage.setItem('watchlist_groups_data', JSON.stringify(updated));
         return updated;
       });
 
@@ -282,6 +286,7 @@ export default function App() {
 
     localStorage.setItem('watchlist_group_keys', JSON.stringify(updatedKeys));
     localStorage.setItem('watchlist_group_names', JSON.stringify(updatedNames));
+    localStorage.setItem('watchlist_groups_data', JSON.stringify(updatedGroups));
 
     alert(`New Watchlist Group created successfully!`);
   };
@@ -319,10 +324,13 @@ export default function App() {
       low: baseP * 0.98
     };
 
-    setWatchlistGroups({
+    const updatedGroups = {
       ...watchlistGroups,
       [activeWatchlistGroup]: [...currentList, newStockObj]
-    });
+    };
+
+    setWatchlistGroups(updatedGroups);
+    localStorage.setItem('watchlist_groups_data', JSON.stringify(updatedGroups));
     setNewStockInput('');
     alert(`${sym} वॉचलिस्ट ग्रुपमध्ये यशस्वीरीत्या जोडला गेला!`);
   };
@@ -703,7 +711,7 @@ export default function App() {
                     <div className="flex items-center space-x-2 mt-1">
                       <span className="text-[11px] font-mono text-gray-200">₹{stock.price.toFixed(2)}</span>
                       <span className={`text-[10px] font-mono font-bold ${stock.isUp ? 'text-green-400' : 'text-red-400'}`}>
-                        {stock.isUp ? '+' : ''}{stock.changeNum.toFixed(2)} ({stock.isUp ? '+' : ''}{stock.changePct.toFixed(2)}%)
+                        {stock.isUp ? '+' : ''}{(stock.changeNum || 0).toFixed(2)} ({stock.isUp ? '+' : ''}{(stock.changePct || 0).toFixed(2)}%)
                       </span>
                     </div>
                   </div>
